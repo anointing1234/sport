@@ -30,16 +30,11 @@ SECRET_KEY = 'django-insecure-*^x+y-u8wp0@mkj35p5g-5ge7ugiu)+5_&4ll6*#^j-cae(5#1
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-# DEBUG_PROPAGATE_EXCEPTIONS = True
+DEBUG_PROPAGATE_EXCEPTIONS = True
 
-# CSRF_TRUSTED_ORIGINS = ["https://web-production-23342.up.railway.app"]
-# ALLOWED_HOSTS = ["web-production-23342.up.railway.app"]
+CSRF_TRUSTED_ORIGINS = ["https://soccer247gv.com/"]
+ALLOWED_HOSTS = ["https://soccer247gv.com/"]
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-
-
-
-ALLOWED_HOSTS = ["*"]
-
 
 # # # Application definition
 AUTH_USER_MODEL = 'accounts.Account'
