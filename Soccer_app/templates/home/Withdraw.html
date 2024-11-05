@@ -1,0 +1,169 @@
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  {% load humanize %}
+  <style>
+    .nav-tabs .nav-link {
+      color: white; /* Text color for inactive tabs */
+    }
+    
+    /* Custom styles for active tab link */
+    .nav-tabs .nav-link.active {
+      color: #000; /* Change this to the desired color for the active tab */
+      background-color: #f8f9fa; /* Optional: background color for the active tab */
+    }
+  </style>
+  <div class="page-inner">
+    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+      <div>
+        <h6 class="text-white mb-3" style="font-family: Verdana, Geneva, Tahoma, sans-serif;"><i class="fas fa-wallet"></i> Withdraw</h6>
+      </div>
+    </div>
+
+    <!-- Tabs for Withdraw and History -->
+    <ul class="nav nav-tabs mb-4" id="withdrawTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="withdraw-tab" data-bs-toggle="tab" href="#withdraw" role="tab" aria-controls="withdraw" aria-selected="true">Withdraw Funds</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history" role="tab" aria-controls="history" aria-selected="false">Withdrawal History</a>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="withdrawTabContent">
+      <!-- Withdraw Funds Tab -->
+      <div class="tab-pane fade show active" id="withdraw" role="tabpanel" aria-labelledby="withdraw-tab">
+        <div class="row mb-5 pb-5">
+          <div class="col-md-6 mb-4">
+            <div class="card card-stats card-round py-4">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-5 text-center">
+                    <div class="icon-big">
+                      <i class="icon-wallet text-success"></i>
+                    </div>
+                  </div>
+                  <div class="col-7 col-stats">
+                    <div class="numbers">
+                      <h4 class="card-category">Available Balance</h4>
+                      <h3 class="card-title">₦{{ request.user.userbalance.main_balance|intcomma }}</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="card card-secondary py-5 bg-white-gradient">
+              <div class="card-body">
+                <form id="withdrawForm" method="post" action="">
+                  {% csrf_token %}
+                  <div class="mb-4">
+                    <label for="withdrawAmount" class="form-label text-white">Withdraw Amount</label>
+                    <input type="number" class="form-control" id="withdrawAmount" name="withdrawAmount" required />
+                  </div>
+                  <div class="mb-4">
+                    <label for="withdrawMethod" class="form-label text-white">Withdraw Method</label>
+                    <select class="form-control" id="withdrawMethod" name="withdrawMethod" required>
+                      <option value="bank">Bank Transfer</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Submit Request</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdrawal History Tab -->
+      <div class="tab-pane fade mb-5 pb-5" id="history" role="tabpanel" aria-labelledby="history-tab">
+        <div class="container-fluid mb-4">
+          <h5 class="fw-bold text-center">Withdrawal History</h5>
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Withdrawal Amount</th>
+                      <th>Withdraw Method</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if withdrawal_history %}
+                      {% for withdrawal in withdrawal_history %}
+                        <tr>
+                          <td>{{ withdrawal.amount }}</td>
+                          <td>{{ withdrawal.method }}</td>
+                          <td>{{ withdrawal.date }}</td>
+                          <td>{{ withdrawal.status }}</td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="4" class="text-center">
+                          <div class="alert alert-warning" role="alert">No withdrawal history available.</div>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Include SweetAlert and jQuery -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{% static 'js/sweetalert2.all.min.js' %}"></script>
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script>
+    $(document).ready(function () {
+      $('#withdrawForm').on('submit', function (event) {
+        event.preventDefault() // Prevent the default form submission
+    
+        $.ajax({
+          type: 'POST',
+          url: '{% url "withdraw" %}', // The URL to your withdraw view
+          data: $(this).serialize(), // Serialize form data
+          success: function (response) {
+            if (response.success) {
+              // Show success message
+              Swal.fire({
+                title: 'Success!',
+                text: response.message,
+                icon: 'success'
+              }).then(() => {
+                // Optionally redirect or refresh the page after success
+                location.reload() // Reload the page to update the balance or history
+              })
+              // Optionally, clear the form fields
+              $('#withdrawForm')[0].reset()
+            } else {
+              // Show error message
+              Swal.fire({
+                title: 'Error!',
+                text: response.message,
+                icon: 'error'
+              })
+            }
+          },
+          error: function () {
+            Swal.fire({
+              title: 'Error!',
+              text: 'An unexpected error occurred. Please try again later.',
+              icon: 'error'
+            })
+          }
+        })
+      })
+    })
+  </script>
+{% endblock %}

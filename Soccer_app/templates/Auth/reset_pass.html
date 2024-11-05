@@ -1,0 +1,118 @@
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  <style>
+    .form-control {
+      border: 1px solid black !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .form-control:focus {
+      border: 1px solid black !important;
+    }
+  </style>
+
+  <div class="container mt-5 pt-5">
+    <h4 class="text-center mb-1"><i class="fas fa-lock"></i> Reset Password</h4>
+
+    <div class="container-fluid col-lg-7">
+      <div class="card bg-transparent">
+        <div class="card-body">
+          <form id="PasswordResetForm" onsubmit="return handlePasswordReset(event);">
+            {% csrf_token %}
+
+            <!-- Phone Field -->
+            <div class="mb-3">
+              <label for="id_phone" class="form-label text-light">Phone Number</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}
+                <div class="text-danger">{{ form.phone.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Reset Code Field -->
+            <div class="mb-3">
+              <label for="id_reset_code" class="form-label text-light">Reset Code</label>
+              {{ form.reset_code }}
+              {% if form.reset_code.errors %}
+                <div class="text-danger">{{ form.reset_code.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- New Password Field -->
+            <div class="mb-3">
+              <label for="id_new_password" class="form-label text-light">New Password</label>
+              {{ form.new_password }}
+              {% if form.new_password.errors %}
+                <div class="text-danger">{{ form.new_password.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="mb-3">
+              <label for="id_confirm_password" class="form-label text-light">Confirm Password</label>
+              {{ form.confirm_password }}
+              {% if form.confirm_password.errors %}
+                <div class="text-danger">{{ form.confirm_password.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Submit Button -->
+            <div class="container-fluid col-12">
+              <button type="submit" class="btn btn-warning text-dark rounded-pill">Reset Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+  <script>
+    function handlePasswordReset(event) {
+      event.preventDefault()
+    
+      const formData = new FormData(document.getElementById('PasswordResetForm'))
+    
+      fetch("{% url 'password_reset' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: data.message,
+              confirmButtonText: 'Okay'
+            }).then(() => {
+              window.location.href = "{% url 'signin' %}" // Redirect to login page after 1 second
+            })
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Reset Failed',
+              text: data.message,
+              confirmButtonText: 'Okay'
+            })
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error)
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Network error. Please try again later.',
+            confirmButtonText: 'Okay'
+          })
+        })
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,88 @@
+<!-- password_reset.html -->
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  <style>
+    .form-control {
+      border: 1px solid black !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .form-control:focus {
+      border: 1px solid black !important;
+    }
+  </style>
+
+  <div class="container mt-5 mb-5 pb-5 pt-5">
+    <h4 class="text-center mb-1 mt-5 pt-5">Send password reset msg</h4>
+
+    <div class="container-fluid mt-5 col-lg-7 mb-5 pb-5">
+      <div class="card bg-transparent">
+        <div class="card-body">
+          <form id="PasswordResetForm" onsubmit="return handlePasswordReset(event);">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="id_phone" class="form-label text-light">send password reset message</label>
+              {{ form.email }}
+            </div>
+            <div class="container-fluid col-12">
+              <button type="submit" class="btn btn-warning text-dark rounded-pill">Proceed</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+  <script>
+    function handlePasswordReset(event) {
+      event.preventDefault()
+    
+      const formData = new FormData(document.getElementById('PasswordResetForm'))
+    
+      fetch("{% url 'send_password_reset_code' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: data.message,
+              confirmButtonText: 'Okay'
+            }).then(() => {
+              // Redirect after 1 second (1000 milliseconds) delay
+              setTimeout(() => {
+                window.location.href = "{% url 'reset_password' %}"
+              }, 1000)
+            })
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Send Failed',
+              text: data.message,
+              confirmButtonText: 'Okay'
+            })
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error)
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Network error. Please try again later.',
+            confirmButtonText: 'Okay'
+          })
+        })
+    }
+  </script>
+{% endblock %}

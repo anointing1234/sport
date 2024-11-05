@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>SOCCER247GV | OFFICIAL WEBSITE</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon" />
+
+    <!-- Fonts and icons -->
+    <script src="{% static 'js/plugin/webfont/webfont.min.js' %}"></script>
+    <script>
+      WebFont.load({
+        google: { families: ['Public Sans:300,400,500,600,700'] },
+        custom: {
+          families: ['Font Awesome 5 Solid', 'Font Awesome 5 Regular', 'Font Awesome 5 Brands', 'simple-line-icons'],
+          urls: ["{% static 'css/fonts.min.css' %}"]
+        },
+        active: function () {
+          sessionStorage.fonts = true
+        }
+      })
+    </script>
+
+    <style>
+      /* Custom color for the dark blue header */
+      .bg-dark-blue {
+        background-color: #001f3f; /* Very dark blue */
+      }
+    </style>
+
+    <style>
+      .img-container {
+        width: 400px; /* Adjust width as desired */
+        height: 200px; /* Adjust height as desired */
+        overflow: hidden;
+      }
+      
+      .img-container img {
+        width: 100%;
+        height: auto;
+      }
+      
+      /* Define dark blue background */
+      .bg-dark-blue {
+        background-color: #001f3f !important;
+        color: white;
+      }
+      /* Style the table headers */
+      thead th {
+        background-color: #001f3f;
+        color: white;
+      }
+      /* Style the table body with dark text on a white background */
+      tbody tr {
+        color: #001f3f;
+      }
+      /* Loader styles */
+      #loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: darkblue; /* Dark blue background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* Ensures it covers the entire page */
+      }
+      
+      #loader img {
+        width: 150px; /* Initial size of the logo */
+        animation: scaleAnimation 3s infinite; /* Animation for scaling */
+      }
+      
+      /* Keyframes for scaling animation */
+      @keyframes scaleAnimation {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.2); /* Scale up the logo */
+        }
+      }
+    </style>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/plugins.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/kaiadmin.min.css' %}" />
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link rel="stylesheet" href="{% static 'css/demo.css' %}" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+
+  <body class="bg-dark-blue">
+    <!-- Loader -->
+    <div id="loader">
+      <img src="{% static 'img/soccer_logo.png' %}" alt="Loading..." />
+    </div>
+
+    <div class="wrapper">
+      {% include '../sections/nav.html' %}
+      <div class="main-panel">
+        {% include '../sections/header.html' %}
+        <div class="container">
+          {% block contents %}
+
+          {% endblock %}
+          {% include '../sections/footer.html' %}
+        </div>
+      </div>
+    </div>
+    <script>
+      $(window).on('load', function () {
+        // Hide the loader and show the content after 4 seconds
+        setTimeout(function () {
+          $('#loader').fadeOut(500, function () {
+            $('#content').fadeIn(500)
+          })
+        }, 2000)
+      })
+    </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const currentPath = window.location.pathname
+        const navItems = document.querySelectorAll('#sidebar-nav .nav-item a')
+      
+        navItems.forEach((item) => {
+          if (item.getAttribute('href') === currentPath) {
+            item.parentElement.classList.add('active')
+          }
+        })
+      })
+    </script>
+  </body>
+</html>

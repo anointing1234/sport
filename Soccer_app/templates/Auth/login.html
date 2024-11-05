@@ -1,0 +1,128 @@
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  <style>
+    .nav-tabs .nav-link {
+      color: white;
+    }
+    .nav-tabs .nav-link.active {
+      color: #000;
+      background-color: #f8f9fa;
+    }
+    .form-step {
+      display: none;
+    }
+    .form-step.active {
+      display: block;
+    }
+    .form-control {
+      border: 1px solid black !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .form-control:focus {
+      border: 1px solid black !important;
+    }
+  </style>
+
+  <div class="page-inner mb-5 pb-5">
+    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+      <div>
+        <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3">Login</h6>
+      </div>
+    </div>
+
+    <div class="container mt-5 mb-5 pb-5">
+      <h4 class="text-center mb-1"><i class="fas fa-user"></i> Login | Account</h4>
+
+      <div class="container-fluid col-lg-7 mb-5 pb-5">
+        <div class="card mb-5 pb-5 form-step active bg-transparent" id="step1">
+          <div class="card-body">
+            <form id="LoginForm" onsubmit="return handleLogin(event);">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label for="id_phone" class="form-label text-white mb-2">Phone Number</label>
+                {{ login.phone }}
+                {% if login.phone.errors %}
+                  <div class="text-danger">{{ login.phone.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="id_password" class="form-label text-white mb-2">Password</label>
+                {{ login.password }}
+                {% if login.password.errors %}
+                  <div class="text-danger">{{ login.password.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="">
+                <p class="text-white">
+                  <a class="text-light" href="{% url 'signup' %}">Don't have an account?</a>
+                </p>
+              </div>
+              <p class="text-white">
+                <a class="text-light" href="{% url 'send_pass_msg' %}">Forgot password</a>
+              </p>
+              <div class="container-fluid col-12">
+                <button type="submit" class="btn btn-warning text-dark rounded-pill">Sign in</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+  <script>
+    function handleLogin(event) {
+      event.preventDefault()
+    
+      // Create a FormData object with the login form data
+      const formData = new FormData(document.getElementById('LoginForm'))
+    
+      fetch("{% url 'signin' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            // Display success message
+            Swal.fire({
+              icon: 'success',
+              title: 'Welcome!',
+              text: data.message || 'You have successfully logged in!',
+              confirmButtonText: 'Okay'
+            }).then(() => {
+              window.location.href = data.redirect_url
+            })
+          } else {
+            // Display error message
+            Swal.fire({
+              icon: 'error',
+              title: 'Login failed',
+              text: data.message || 'Invalid phone number or password. Please try again.',
+              confirmButtonText: 'Okay'
+            })
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error)
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Network error. Please try again later.',
+            confirmButtonText: 'Okay'
+          })
+        })
+    }
+  </script>
+{% endblock %}

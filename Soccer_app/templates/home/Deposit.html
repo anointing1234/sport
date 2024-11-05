@@ -1,0 +1,203 @@
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  {% load humanize %}
+  <style>
+    .nav-tabs .nav-link {
+      color: white; /* Text color for inactive tabs */
+    }
+    
+    /* Custom styles for active tab link */
+    .nav-tabs .nav-link.active {
+      color: #000; /* Change this to the desired color for the active tab */
+      background-color: #f8f9fa; /* Optional: background color for the active tab */
+    }
+  </style>
+  <div class="page-inner">
+    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+      <div>
+        <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3"><i class="fas fa-wallet"></i> Deposit</h6>
+        <p>Note: minimum Deposit is ₦16,500</p>
+      </div>
+    </div>
+
+    <!-- Tabs for Deposit and Deposit History -->
+    <ul class="nav nav-tabs mb-4" id="depositTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="deposit-tab" data-bs-toggle="tab" href="#deposit" role="tab" aria-controls="deposit" aria-selected="true">Deposit Funds</a>
+      </li>
+      <li class="nav-item" role="presentation">
+        <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history" role="tab" aria-controls="history" aria-selected="false">Deposit History</a>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="depositTabContent">
+      <!-- Deposit Funds Tab -->
+      <div class="tab-pane fade show active" id="deposit" role="tabpanel" aria-labelledby="deposit-tab">
+        <div class="row mb-5 pb-5 p-0">
+          <div class="row mx-3">
+            <div class="container-fluid d-flex justify-content-center d-block mb-2 pb-5">
+              <div class="col-md-7 me-4">
+                <div class="card card-secondary py-5 bg-white-gradient">
+                  <div class="card-body skew-shadow">
+                    <form id="depositForm">
+                      {% csrf_token %}
+                      <div class="mb-4">
+                        <label for="depositAmount" class="form-label text-white">Deposit Amount</label>
+                        <input type="number" class="form-control" id="depositAmount" name="depositAmount" required min="16500" placeholder="Minimum amount is 16,500" oninput="validateInput(this)" />
+                        <div class="invalid-feedback">Please enter an amount of at least 16,500.</div>
+                      </div>
+
+                      <div class="mb-4">
+                        <label for="depositMethod" class="form-label text-white">Deposit Method</label>
+                        <select class="form-control" id="depositMethod" name="depositMethod" required>
+                          <option value="bank">Bank Transfer</option>
+                        </select>
+                      </div>
+                      <button type="button" class="btn btn-primary" onclick="submitDeposit()">Submit Deposit</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Deposit History Tab -->
+      <div class="tab-pane fade mb-5 pb-5" id="history" role="tabpanel" aria-labelledby="history-tab">
+        <div class="container-fluid mb-4">
+          <h5 class="fw-bold text-center">Deposit History</h5>
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Deposit Amount</th>
+                      <th>Deposit Method</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% if Deposit_history %}
+                      {% for deposit in Deposit_history %}
+                        <tr>
+                          <td>₦{{ deposit.amount|intcomma }}</td>
+                          <td>{{ deposit.method }}</td>
+                          <td>{{ deposit.date }}</td>
+                          <td>{{ deposit.status }}</td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="4" class="text-center">
+                          <div class="alert alert-warning" role="alert">No deposit history available.</div>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    async function submitDeposit() {
+      try {
+        // Fetch Admin Bank Account Details
+        const response = await fetch("{% url 'get_admin_bank_account' %}")
+        const data = await response.json()
+    
+        if (data.success) {
+          // Get the deposit amount from the input field
+          const depositAmount = document.getElementById('depositAmount').value
+    
+          // Show SweetAlert with Bank Account Details
+          const { account_holder_name, bank_name, account_number } = data.account
+          Swal.fire({
+            title: 'Bank Account Details',
+            html: `
+                              <p><strong>Account Holder:</strong> ${account_holder_name}</p>
+                              <p><strong>Bank Name:</strong> ${bank_name}</p>
+                              <p><strong>Account Number:</strong> ${account_number}</p>
+                              <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p> <!-- Displaying Deposit Amount -->
+                          `,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Proceed with Deposit'
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+              // Proceed with deposit by sending form data via AJAX
+              const form = document.getElementById('depositForm')
+              const formData = new FormData(form)
+    
+              // Make an AJAX request to process the deposit
+              const depositResponse = await fetch("{% url 'proceed_to_payment' %}", {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: formData
+              })
+              const depositData = await depositResponse.json()
+    
+              // Display success or error message based on the server response
+              if (depositData.success) {
+                Swal.fire('Success', depositData.message, 'success')
+              } else {
+                Swal.fire('Error', depositData.message, 'error')
+              }
+            }
+          })
+        } else {
+          // Display error if no bank account found
+          Swal.fire('Error', data.message, 'error')
+        }
+      } catch (error) {
+        Swal.fire('Error', 'An error occurred while fetching bank account details.', 'error')
+      }
+    }
+    
+    // Attach the submitDeposit function to the form's submit event
+    document.getElementById('depositForm').addEventListener('submit', function (event) {
+      event.preventDefault() // Prevent the default form submission
+      submitDeposit() // Call the submitDeposit function
+    })
+  </script>
+
+  <script>
+    function validateInput(input) {
+      const minAmount = 16500
+    
+      // Allow empty input to handle deletions
+      if (input.value === '') {
+        input.setCustomValidity('') // Reset the custom error for empty input
+        return
+      }
+    
+      // Convert the input value to a number for comparison
+      const value = Number(input.value)
+    
+      // Check if the current value is less than the minimum
+      if (value < minAmount) {
+        input.setCustomValidity('Please enter an amount of at least 16,500.')
+      } else {
+        input.setCustomValidity('') // Reset the custom error
+      }
+    }
+    
+    // Additional check when the input loses focus
+    document.getElementById('depositAmount').addEventListener('blur', function () {
+      const minAmount = 16500
+      const value = Number(this.value)
+      if (value < minAmount) {
+        this.value = minAmount // Set the value to minimum if it's less
+      }
+    })
+  </script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  <div class="page-inner">
+    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+      <div>
+        <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3"><i class="fas fa-user"></i> Profile</h6>
+      </div>
+    </div>
+
+    <div class="row mb-5 pb-3 p-0">
+      <div class="row mx-1">
+        <div class="container-fluid mb-3 mt-5 border-bottom">
+          <h5 class="fw-bold text-center">My Bank Account Details</h5>
+        </div>
+
+        <div class="container-fluid d-flex justify-content-center mb-2 pb-5">
+          <div class="col-md-6">
+            <div class="card card-secondary py-5 bg-secondary-gradient">
+              <div class="card-body skew-shadow">
+                {% if request.user.bank_details %}
+                  <h3 class="py-4 mb-0">ACCOUNT NUMBER: {{ account_number|slice:':4' }}************{{ account_number|slice:'-5:' }}</h3>
+                  <div class="row">
+                    <div class="col-8 pe-0">
+                      <h3 style="color: white;" class="fw-bold mb-4">BANK NAME: {{ request.user.bank_details.bank_name|default:'Not set' }}</h3>
+                      <div class="text-small text-uppercase fw-bold">
+                        <h4 class="text-uppercase">NAME: {{ request.user.bank_details.account_holder_name|default:'Not set' }}</h4>
+                      </div>
+                    </div>
+                  </div>
+                {% else %}
+                  <h3 class="py-4 mb-0">ACCOUNT NUMBER: Not set</h3>
+                  <div class="row">
+                    <div class="col-8 pe-0">
+                      <h3 style="color: white;" class="fw-bold mb-4">BANK NAME: Not set</h3>
+                      <div class="text-small text-uppercase fw-bold">
+                        <h4 class="text-uppercase">NAME: Not set</h4>
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

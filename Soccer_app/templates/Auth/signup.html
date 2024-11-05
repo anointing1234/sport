@@ -1,0 +1,220 @@
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  <style>
+    .nav-tabs .nav-link {
+      color: white; /* Text color for inactive tabs */
+    }
+    
+    .nav-tabs .nav-link.active {
+      color: #000;
+      background-color: #f8f9fa;
+    }
+    
+    /* Hide all steps initially except the active one */
+    .form-step {
+      display: none;
+    }
+    .form-step.active {
+      display: block;
+    }
+    /* Custom styles for input fields */
+    .form-control {
+      border: 1px solid black !important; /* Black border */
+      outline: none !important; /* Remove Bootstrap outline */
+      box-shadow: none !important; /* Remove default box-shadow */
+    }
+    
+    /* Optional: add focus styles if you want */
+    .form-control:focus {
+      border: 1px solid black !important; /* Maintain the black border on focus */
+    }
+  </style>
+
+  <div class="page-inner mb-5 pb-5">
+    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+      <div>
+        <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3">Register</h6>
+      </div>
+    </div>
+
+    <div class="container mt-5">
+      <h4 class="text-center mb-1"><i class="fas fa-user-plus"></i> Signup | Join the wining family..</h4>
+
+      <!-- Step 1 -->
+      <div class="container-fluid col-lg-7">
+        <div class="card form-step active bg-transparent" id="step1">
+          <div class="card-body">
+            <h5 class="mb-2 text-white">Step 1:</h5>
+            <form id="signupStep1" onsubmit="return showBankDetails(event);">
+              <div class="mb-3">
+                <label for="username" class="form-label text-white mb-2">Email</label>
+                {{ user_form.email }}
+                {% if user_form.email.errors %}
+                  <div class="text-danger">{{ user_form.email.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label text-white mb-2">Password</label>
+                {{ user_form.password }}
+                {% if user_form.password.errors %}
+                  <div class="text-danger">{{ user_form.password.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="phone" class="form-label text-white mb-2">Phone Number</label>
+                {{ user_form.phone }}
+                {% if user_form.phone.errors %}
+                  <div class="text-danger">{{ user_form.phone.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Referral Code Toggle Section -->
+              <div class="mb-3 form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="referralToggle" onclick="toggleReferralField()" />
+                <label class="form-check-label text-white" for="referralToggle">Have a referral code?</label>
+              </div>
+
+              <!-- Referral Code Field (initially hidden) -->
+              <div class="mb-3 col-md-4" id="referralCodeField" style="display: none;">
+                <label for="referralCode" class="form-label text-white mb-2">Referral Code</label>
+                {{ user_form.referral_code }}
+                {% if user_form.referral_code.errors %}
+                  <div class="text-danger">{{ user_form.referral_code.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="container-fluid col-12">
+                <button type="submit" class="btn btn-warning text-dark rounded-pill">Next<i class="fas fa-arrow-right"></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="container-fluid col-lg-7">
+        <div class="card form-step bg-transparent" id="step2">
+          <div class="card-body">
+            <h6 class="mb-2 text-white">Step 2: Bank Account Details</h6>
+            <form id="signupStep2" onsubmit="submitSignupForm(event);">
+              <div class="mb-3">
+                <label for="accountNumber" class="form-label text-white mb-2">Account Number</label>
+                {{ bank_form.account_number }}
+                {% if bank_form.account_number.errors %}
+                  <div class="text-danger">{{ bank_form.account_number.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="bankName" class="form-label text-white mb-2">Bank Name</label>
+                {{ bank_form.bank_name }}
+                {% if bank_form.bank_name.errors %}
+                  <div class="text-danger">{{ bank_form.bank_name.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                <label for="accountHolder" class="form-label text-white mb-2">Account Holder Name</label>
+                {{ bank_form.account_holder_name }}
+                {% if bank_form.account_holder_name.errors %}
+                  <div class="text-danger">{{ bank_form.account_holder_name.errors }}</div>
+                {% endif %}
+              </div>
+              <button type="button" class="btn btn-warning text-dark rounded-pill" onclick="showUserDetails()"><i class="fas fa-arrow-left"></i> Back</button>
+              <button type="submit" class="btn btn-success text-dark rounded-pill">Sign Up <i class="fas fa-user-check"></i></button>
+            </form>
+          </div>
+          <p class="text-light">fill in correct bank details after registeration it can't be changed</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+      function showBankDetails(event) {
+        event.preventDefault()
+        // Hide Step 1, show Step 2
+        document.getElementById('step1').classList.remove('active')
+        document.getElementById('step2').classList.add('active')
+      }
+      
+      function showUserDetails() {
+        // Hide Step 2, show Step 1
+        document.getElementById('step2').classList.remove('active')
+        document.getElementById('step1').classList.add('active')
+      }
+      
+      function toggleReferralField() {
+        const referralField = document.getElementById('referralCodeField')
+        const isChecked = document.getElementById('referralToggle').checked
+        referralField.style.display = isChecked ? 'block' : 'none'
+      }
+      
+      function submitSignupForm(event) {
+        event.preventDefault()
+      
+        // Create a FormData object and append data from both forms
+        const formData = new FormData()
+      
+        // Append data from Step 1
+        const step1Data = new FormData(document.getElementById('signupStep1'))
+        step1Data.forEach((value, key) => {
+          formData.append(key, value)
+        })
+      
+        // Append data from Step 2
+        const step2Data = new FormData(document.getElementById('signupStep2'))
+        step2Data.forEach((value, key) => {
+          formData.append(key, value)
+        })
+      
+        fetch("{% url 'register' %}", {
+          // Replace with your actual view URL name
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}' // Add CSRF token for security
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              // Show success message
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message || 'You have successfully signed up!',
+                confirmButtonText: 'Okay'
+              }).then(() => {
+                // Optionally redirect or perform any other action
+                window.location.href = data.redirect_url // Use the redirect URL from the response if needed
+              })
+            } else {
+              // Show error message
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.message || 'Something went wrong. Please try again.',
+                confirmButtonText: 'Okay'
+              })
+            }
+          })
+          .catch((error) => {
+            console.error('Error:', error)
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Network error. Please try again later.',
+              confirmButtonText: 'Okay'
+            })
+          })
+      }
+    </script>
+  </div>
+{% endblock %}

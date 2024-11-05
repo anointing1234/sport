@@ -1,0 +1,98 @@
+{% load static %}
+<div class="sidebar" data-background-color="dark">
+  <div class="sidebar-logo">
+    <div class="logo-header" data-background-color="dark">
+      <a href="index.html" class="logo text-light"><img src="{% static 'img/soccer_logo.png' %}" alt="navbar brand" class="navbar-brand" height="70" />SOCCER247GV</a>
+      <div class="nav-toggle">
+        <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
+        <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+      </div>
+      <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
+    </div>
+  </div>
+  <div class="sidebar-wrapper scrollbar scrollbar-inner">
+    <div class="sidebar-content">
+      <ul class="nav nav-secondary" id="sidebar-nav">
+        <li class="nav-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-home"></i>
+            <p>Home</p>
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a data-bs-toggle="collapse" href="#base">
+              <i class="fas fa-user-circle"></i>
+              <p>Account</p>
+              <span class="caret"></span>
+            </a>
+            <div class="collapse" id="base">
+              <ul class="nav nav-collapse">
+                <li>
+                  <a href="{% url 'profile' %}"><i class="fas fa-user"></i>Profile</a>
+                </li>
+                <li>
+                  <a href="{% url 'bank_account' %}"><i class="fas fa-wallet"></i>Bank Account Details</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+        {% endif %}
+        <li class="nav-item">
+          <a href="{% url 'parkages' %}">
+            <i class="fas fa-money-bill-wave"></i>
+            <p>Parkages</p>
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a href="{% url 'Deposit' %}">
+              <i class="fas fa-wallet"></i>
+              <p>Deposit</p>
+            </a>
+          </li>
+        {% endif %}
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a href="{% url 'Withdraw' %}">
+              <i class="fas fa-arrow-up"></i>
+              <p>Withdraw</p>
+            </a>
+          </li>
+        {% endif %}
+        <li class="nav-item">
+          <a href="{% url 'football' %}">
+            <i class="fas fa-futbol"></i>
+            <p>Football</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'league' %}">
+            <i class="fas fa-trophy"></i>
+            <p>Leagues</p>
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a href="{% url 'bet_history' %}">
+              <i class="fas fa-history"></i>
+              <p>Betting History</p>
+            </a>
+          </li>
+        {% endif %}
+        {% if user.is_authenticated %}
+          <li class="nav-item text-white">
+            <a class="text-white" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i><p>Logout</p></a>
+          </li>
+        {% else %}
+          <li class="nav-item text-white">
+            <a class="text-white" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i><p>Login</p></a>
+          </li>
+          <li class="nav-item text-white">
+            <a class="text-white" href="{% url 'signup' %}"><i class="fas fa-user-plus"></i><p>Signup</p></a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>

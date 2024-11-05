@@ -1,0 +1,262 @@
+{% extends 'core/base/base.html' %}
+{% load static %}
+{% block contents %}
+  <style>
+    .nav-tabs .nav-link {
+      color: white; /* Text color for inactive tabs */
+    }
+    
+    /* Custom styles for active tab link */
+    .nav-tabs .nav-link.active {
+      color: #000; /* Change this to the desired color for the active tab */
+      background-color: #f8f9fa; /* Optional: background color for the active tab */
+    }
+  </style>
+  <div class="page-inner mb-5 pb-5">
+    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+      <div>
+        <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3"><i class="fas fa-futbol"></i> Football</h6>
+      </div>
+    </div>
+    <div class="container-fluid mb-5 pb-5 p-0">
+      <ul class="nav nav-tabs" id="matchTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="live-matches-tab" data-bs-toggle="tab" data-bs-target="#live-matches" type="button" role="tab" aria-controls="live-matches" aria-selected="true">Live Matches</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="soccer-matches-tab" data-bs-toggle="tab" data-bs-target="#soccer-matches" type="button" role="tab" aria-controls="soccer-matches" aria-selected="false">Soccer Matches</button>
+        </li>
+      </ul>
+
+      <div class="tab-content mt-3" id="matchTabsContent">
+        <!-- Live Matches Tab Pane -->
+        <div class="tab-pane fade show active" id="live-matches" role="tabpanel" aria-labelledby="live-matches-tab">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover" style="background-color: white;">
+                  <thead>
+                    <tr>
+                      <th>Match</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Fixed Score</th>
+                      <th>Profit</th>
+                      <th>Bet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for match in football_matches %}
+                      {% if match.match_type == 'live' %}
+                        <tr>
+                          <td>{{ match.home_team }} vs {{ match.away_team }}</td>
+                          <td>{{ match.start_time|date:'d M Y' }}</td>
+                          <td>{{ match.start_time|time:'H:i' }}</td>
+                          <td>{{ match.fixed_score }}</td>
+                          <td>{{ match.profit_percentage|floatformat:'0' }}%</td>
+                          <td>
+                            <button class="btn btn-warning w-100" onclick="placeBet(
+                              this, 
+                              '{{ match.home_team }} vs {{ match.away_team }}', 
+                              '{{ match.start_time|date:'d M Y' }}', 
+                              '{{ match.start_time|time:'H:i' }}',
+                              '{{ match.fixed_score }}', 
+                              '{{ match.profit_percentage }}',
+                            )"><b>Bet now</b></button>
+                          </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Soccer Matches Tab Pane -->
+        <div class="tab-pane fade" id="soccer-matches" role="tabpanel" aria-labelledby="soccer-matches-tab">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover" style="background-color: white;">
+                  <thead>
+                    <tr>
+                      <th>Match</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Fixed Score</th>
+                      <th>Profit</th>
+                      <th>Bet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for match in football_matches %}
+                      {% if match.match_type == 'soccer' %}
+                        <tr>
+                          <td>{{ match.home_team }} vs {{ match.away_team }}</td>
+                          <td>{{ match.start_time|date:'d M Y' }}</td>
+                          <td>{{ match.start_time|time:'H:i' }}</td>
+                          <td>{{ match.fixed_score }}</td>
+                          <td>{{ match.profit_percentage|floatformat:'0' }}%</td>
+                          <td>
+                            <button class="btn btn-warning w-100" onclick="placeBet(
+                              this, 
+                              '{{ match.home_team }} vs {{ match.away_team }}', 
+                              '{{ match.start_time|date:'d M Y' }}', 
+                              '{{ match.start_time|time:'H:i' }}',
+                              '{{ match.fixed_score }}', 
+                              '{{ match.profit_percentage }}',
+                            )"><b>Bet now</b></button>
+                          </td>
+                        </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- Include SweetAlert2 -->
+
+  <script>
+    const placeBetUrl = "{% url 'place_bet' %}"
+    const checkUserPackageUrl = "{% url 'check_user_package' %}" // Add this line to get the URL for checking user package
+    const csrftoken = '{{ csrf_token }}'
+    
+    // Function to display SweetAlert alerts
+    function displayAlert(type, message) {
+      Swal.fire({
+        icon: type,
+        title: type === 'success' ? 'Success' : 'Error',
+        text: message,
+        showCloseButton: true,
+        timer: 5000,
+        timerProgressBar: true,
+        didOpen: () => {
+          Swal.showLoading()
+        }
+      })
+    }
+    
+    // Function to format the date to YYYY-MM-DD
+    function formatDate(dateStr) {
+      const date = new Date(dateStr)
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateStr)
+        return null // Return null if the date is invalid
+      }
+      return date.toISOString().split('T')[0] // Convert to YYYY-MM-DD
+    }
+    
+    // Function to check if the user has purchased a package
+    function checkUserPackage() {
+      return fetch(checkUserPackageUrl, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': csrftoken // Use the CSRF token variable from Django
+        }
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Could not check package status.')
+          }
+          return response.json()
+        })
+        .then((data) => data.has_package)
+    }
+    
+    // Function to place a bet
+    function placeBet(button, match, date, time, fixedScore, profitPercentage) {
+      // Disable the button to prevent multiple clicks
+      button.disabled = true
+      button.innerHTML = 'Checking...' // Change button text to indicate checking status
+    
+      // Check if user has purchased a package
+      checkUserPackage()
+        .then((hasPackage) => {
+          if (!hasPackage) {
+            displayAlert('error', 'You must purchase a package before placing a bet.')
+            button.innerHTML = 'Bet Now' // Reset button text
+            button.disabled = false // Enable button again
+            return // Exit the function if no package is found
+          }
+    
+          // Start countdown timer
+          let countdown = 20
+          const countdownInterval = setInterval(() => {
+            button.innerHTML = `Playing... (${countdown}s)`
+            countdown--
+    
+            if (countdown < 0) {
+              clearInterval(countdownInterval)
+              button.innerHTML = 'Bet' // Reset button text
+    
+              // Format the date correctly after countdown is complete
+              const formattedDate = formatDate(date)
+              if (!formattedDate) {
+                displayAlert('error', 'Invalid date format. Please use a valid date.')
+                button.disabled = false // Enable button again
+                return // Exit the function if the date is invalid
+              }
+    
+              // Send bet details to the server
+              const betDetails = {
+                match: match,
+                date: formattedDate,
+                time: time,
+                fixed_score: fixedScore,
+                profit_percentage: profitPercentage
+              }
+    
+              console.log('Bet Details:', betDetails) // Debugging line
+    
+              fetch(placeBetUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrftoken // Use the CSRF token variable from Django
+                },
+                body: JSON.stringify(betDetails)
+              })
+                .then((response) => {
+                  console.log('Server Response Status:', response.status) // Debugging line
+                  if (!response.ok) {
+                    return response.json().then((err) => {
+                      console.error('Error Response:', err) // Debugging line
+                      throw new Error(err.message || 'Server error')
+                    })
+                  }
+                  return response.json()
+                })
+                .then((data) => {
+                  console.log('Response Data:', data) // Debugging line
+                  // Handle success response from the server
+                  displayAlert('success', `Bet won successfully! Profit: ${data.profit}`)
+                  button.innerHTML = 'Bet Now' // Reset button text
+                  button.disabled = false // Enable button again
+                })
+                .catch((error) => {
+                  console.error('Error:', error) // Debugging line
+                  displayAlert('error', error.message || 'An error occurred, please try again.')
+                  button.innerHTML = 'Bet Now' // Reset button text
+                  button.disabled = false // Enable button again
+                })
+            }
+          }, 1000)
+        })
+        .catch((error) => {
+          console.error('Error checking user package:', error)
+          displayAlert('error', 'An error occurred while checking your package status. Please try again.')
+          button.innerHTML = 'Bet Now' // Reset button text
+          button.disabled = false // Enable button again
+        })
+    }
+  </script>
+{% endblock %}
