@@ -29,7 +29,7 @@ environ.Env.read_env(os.path.join(BASE_DIR,'file.env'))
 SECRET_KEY = 'django-insecure-*^x+y-u8wp0@mkj35p5g-5ge7ugiu)+5_&4ll6*#^j-cae(5#1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
 CSRF_TRUSTED_ORIGINS = ["https://sport-production.up.railway.app/"]
