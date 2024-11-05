@@ -33,7 +33,7 @@ DEBUG = False
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
 CSRF_TRUSTED_ORIGINS = ["https://sport-production.up.railway.app/"]
-ALLOWED_HOSTS = ["https://sport-production.up.railway.app/"]
+ALLOWED_HOSTS = ["sport-production.up.railway.app"]
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # # # Application definition
