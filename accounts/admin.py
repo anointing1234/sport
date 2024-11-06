@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Account, UsersReferralPercentage, UsersBankDetail, UserBalance,HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest, WithdrawalRequest,AdminBankAccount,PurchasePackage,ReferralBonus
+from .models import Account, UsersReferralPercentage, UsersBankDetail, UserBalance,HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest, WithdrawalRequest,AdminBankAccount,PurchasePackage,soccer_slider,ReferralBonus,leagues_slider
 from django.utils.html import format_html
 from django.urls import reverse
 
@@ -49,6 +49,36 @@ class ShowcaseSliderAdmin(admin.ModelAdmin):
     def delete_queryset(self, request, queryset):
         for obj in queryset:
             obj.delete()
+
+class soccer_sliderAdmin(admin.ModelAdmin):
+    # Show image preview in the admin list view
+    list_display = ('image_preview',)
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="width: 100px; height: auto;" />', obj.image.url)
+        return "No Image"
+    image_preview.short_description = 'Image Preview'
+
+    # Ensure the image is deleted when the entry is deleted from admin
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.delete()    
+
+class leagues_sliderAdmin(admin.ModelAdmin):
+    # Show image preview in the admin list view
+    list_display = ('image_preview',)
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="width: 100px; height: auto;" />', obj.image.url)
+        return "No Image"
+    image_preview.short_description = 'Image Preview'
+
+    # Ensure the image is deleted when the entry is deleted from admin
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.delete()                        
 
 
 class PremierLeagueGameAdmin(admin.ModelAdmin):
@@ -151,8 +181,11 @@ admin.site.register(DepositRequest, DepositRequestAdmin)
 admin.site.register(WithdrawalRequest, WithdrawalRequestAdmin)
 admin.site.register(PremierLeagueGame, PremierLeagueGameAdmin)
 # Register the model with the custom admin configuration
+soccer_slider
 admin.site.register(ShowcaseSlider, ShowcaseSliderAdmin)
+admin.site.register(soccer_slider, soccer_sliderAdmin)
 # Register the models
+admin.site.register(leagues_slider, leagues_sliderAdmin)
 admin.site.register(Account, AccountAdmin)
 admin.site.register(UsersReferralPercentage, UsersReferralPercentageAdmin)
 admin.site.register(UsersBankDetail, UsersBankDetailsAdmin)

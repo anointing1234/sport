@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import render,get_object_or_404, redirect
 from django.urls import reverse
-from accounts.models import HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest,WithdrawalRequest
+from accounts.models import HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest,WithdrawalRequest,soccer_slider,leagues_slider
 import requests 
 from django.core.paginator import Paginator
 
@@ -43,23 +43,27 @@ def Withdraw(request):
 
 def football(request):
     football_matches = FootballMatch.objects.all()
+    slides = soccer_slider.objects.all()
     context = {
+        'slides': slides,
         'football_matches': football_matches,
     }
     return render(request,'home/football.html',context)
 
-
+leagues_slider
 
 def league(request):
     premier_league_matches = Match.objects.filter(league='PL')
     la_liga_matches = Match.objects.filter(league='LL')
     bundesliga_matches = Match.objects.filter(league='BL')
     serie_a_matches = Match.objects.filter(league='SA')
+    slides = leagues_slider.objects.all()
     context = {
         'premier_league_matches': premier_league_matches,
         'la_liga_matches': la_liga_matches,
         'bundesliga_matches': bundesliga_matches,
         'serie_a_matches': serie_a_matches,
+        'slides': slides,
     }
     return render(request,'home/league.html',context)
 

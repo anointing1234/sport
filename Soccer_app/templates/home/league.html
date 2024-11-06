@@ -18,22 +18,26 @@
         <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3"><i class="fas fa-trophy"></i>Leagues</h6>
       </div>
     </div>
-    <div class="container-fluid mb-5 pb-5 p-0">
-      <ul class="nav nav-tabs" id="matchTabs" role="tablist">
-        <!-- Tab links for different leagues -->
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="premier-league-tab" data-bs-toggle="tab" data-bs-target="#premier-league" type="button" role="tab" aria-controls="premier-league" aria-selected="true">Premier League</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="la-liga-tab" data-bs-toggle="tab" data-bs-target="#la-liga" type="button" role="tab" aria-controls="la-liga" aria-selected="false">La Liga</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="bundesliga-tab" data-bs-toggle="tab" data-bs-target="#bundesliga" type="button" role="tab" aria-controls="bundesliga" aria-selected="false">Bundesliga</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="serie-a-tab" data-bs-toggle="tab" data-bs-target="#serie-a" type="button" role="tab" aria-controls="serie-a" aria-selected="false">Serie A</button>
-        </li>
-      </ul>
+    <div class="container-fluid mb-5 pb-5  p-0">
+      <div class="container-fluid p-0 col-12 py-2">
+        <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-indicators">
+            {% for slide in slides %}
+              <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+            {% endfor %}
+          </div>
+
+          <div class="carousel-inner text-center">
+            {% for slide in slides %}
+              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div style="height: 200px;" class="img-container mx-auto">
+                  <img src="{{ slide.image.url }}" class="d-block" alt="Slide Image" />
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
 
       <div class="tab-content mt-3" id="matchTabsContent">
         <!-- Premier League Tab Pane -->
@@ -41,8 +45,8 @@
           <div class="card">
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-hover" style="background-color: white;">
-                  <thead>
+                <table class="table table-hover table-striped table-bordered" style="background-color: white;">
+                  <thead class="table-primary text-center text-uppercase small">
                     <tr>
                       <th>Match</th>
                       <th>Date</th>
@@ -84,8 +88,8 @@
           <div class="card">
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-hover" style="background-color: white;">
-                  <thead>
+                <table class="table table-hover table-striped table-bordered" style="background-color: white;">
+                  <thead class="table-primary text-center text-uppercase small">
                     <tr>
                       <th>Match</th>
                       <th>Date</th>
@@ -127,8 +131,8 @@
           <div class="card">
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-hover" style="background-color: white;">
-                  <thead>
+                <table class="table table-hover table-striped table-bordered" style="background-color: white;">
+                  <thead class="table-primary text-center text-uppercase small">
                     <tr>
                       <th>Match</th>
                       <th>Date</th>
@@ -170,8 +174,8 @@
           <div class="card">
             <div class="card-body">
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-hover" style="background-color: white;">
-                  <thead>
+                <table class="table table-hover table-striped table-bordered" style="background-color: white;">
+                  <thead class="table-primary text-center text-uppercase small">
                     <tr>
                       <th>Match</th>
                       <th>Date</th>

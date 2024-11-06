@@ -22,10 +22,6 @@
             <div class="avatar-sm">
               <img src="{% static 'img/profile_pic.jpeg' %}" alt="..." class="avatar-img rounded-circle" />
             </div>
-            {% comment %} <span class="profile-username">
-              <span class="op-7">Hi,</span>
-              <span class="fw-bold">Hizrian</span>
-            </span> {% endcomment %}
           </a>
           {% if request.user.is_authenticated %}
             <ul class="dropdown-menu dropdown-user animated fadeIn">

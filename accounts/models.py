@@ -147,6 +147,35 @@ class ShowcaseSlider(models.Model):
         super().delete(*args, **kwargs)
 
 
+
+class soccer_slider(models.Model):
+    image = models.ImageField(upload_to='soccer_slider/')
+
+    class Meta:
+        verbose_name = 'soccer_slider'
+        verbose_name_plural = 'soccer_slider'
+
+    # Override delete method to delete the image file from storage
+    def delete(self, *args, **kwargs):
+        if self.image:
+            self.image.delete(save=False)
+        super().delete(*args, **kwargs)        
+
+class leagues_slider(models.Model):
+    image = models.ImageField(upload_to='leagues_slider/')
+
+    class Meta:
+        verbose_name = 'leagues_slider'
+        verbose_name_plural = 'leagues_slider'
+
+    # Override delete method to delete the image file from storage
+    def delete(self, *args, **kwargs):
+        if self.image:
+            self.image.delete(save=False)
+        super().delete(*args, **kwargs)        
+
+
+
 class PremierLeagueGame(models.Model):
     match = models.CharField(max_length=255)
     start_time = models.DateTimeField()

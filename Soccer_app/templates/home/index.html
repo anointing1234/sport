@@ -18,13 +18,14 @@
     </div>
 
     <div class="row mb-5 pb-5 p-0">
-      <div style="background-color:#003366; border-radius:20px;" class="container-fluid p-0 col-12 py-2">
+      <div class="container-fluid p-0 col-12 py-2">
         <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
           <div class="carousel-indicators">
             {% for slide in slides %}
-              <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %} bg-transparent" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+              <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
             {% endfor %}
           </div>
+
           <div class="carousel-inner text-center">
             {% for slide in slides %}
               <div class="carousel-item {% if forloop.first %}active{% endif %}">
@@ -34,59 +35,51 @@
               </div>
             {% endfor %}
           </div>
-          <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-          </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-          </button>
         </div>
       </div>
 
       <div class="row mx-3">
-        <div class="container-fluid d-flex justify-content-center mb-3 mt-5 border-bottom">
-          <h5 class="fw-bold">🔥Hot games</h5>
+        <div class="container-fluid d-flex justify-content-center mb-4 mt-5 border-bottom border-danger">
+          <h5 class="fw-bold text-danger">🔥 Hot Games</h5>
         </div>
         <div class="row justify-content-center align-items-center mb-1">
           {% for game in hot_games %}
-            <div class="col-md-3 ps-md-0">
-              <div class="card card-pricing">
-                <div class="card-header">
-                  <h5 class="card-title"><p>{{ game.home_team }} vs {{ game.away_team }}</p></h5>
-                  <div class="card-price">
-                    <p>Fixed correct score: {{ game.fixed_score }}</p>
-                  </div>
+            <div class="col-md-3 col-sm-6">
+              <div class="card card-pricing shadow-lg h-100 text-center border border-warning rounded-3">
+                <div class="card-header bg-dark text-light py-3 rounded-top">
+                  <h5 class="card-title text-light mb-1"><strong>{{ game.home_team }} vs {{ game.away_team }}</strong></h5>
+                  <p class="text-warning mb-0">
+                    Fixed correct score: <strong>{{ game.fixed_score }}</strong>
+                  </p>
                 </div>
-                <div class="card-body">
-                  <ul class="specification-list">
-                    <li>
-                      <span class="name-specification">Start time & date</span>
-                      <span class="status-specification">{{ game.start_time|date:'d M H:i' }}</span>
+                <div class="card-body bg-light">
+                  <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between py-1">
+                      <span class="fw-semibold">Start Time & Date</span>
+                      <span>{{ game.start_time|date:'d M H:i' }}</span>
                     </li>
-                    <li>
-                      <span class="name-specification">Profit</span>
-                      <span class="status-specification">{{ game.profit_percentage|floatformat:'0' }}%</span>
+                    <li class="d-flex justify-content-between py-1">
+                      <span class="fw-semibold">Profit</span>
+                      <span>{{ game.profit_percentage|floatformat:'0' }}%</span>
                     </li>
                   </ul>
                 </div>
-                <div class="card-footer">
-                  <button class="btn btn-warning w-100" onclick="placeBet(
-  this, 
-  '{{ game.home_team }} vs {{ game.away_team }}', 
-  '{{ game.start_time|date:'d M Y' }}', 
-  '{{ game.start_time|time:'H:i' }}', 
-  '{{ game.fixed_score }}', 
-  '{{ game.profit_percentage }}',
-  'hot' // Add source
-)"><b>Bet now</b></button>
+                <div class="card-footer bg-warning">
+                  <button class="btn btn-dark w-100" onclick="placeBet(
+            this, 
+            '{{ game.home_team }} vs {{ game.away_team }}', 
+            '{{ game.start_time|date:'d M Y' }}', 
+            '{{ game.start_time|time:'H:i' }}', 
+            '{{ game.fixed_score }}', 
+            '{{ game.profit_percentage }}',
+            'hot'
+          )"><strong>Bet Now</strong></button>
                 </div>
               </div>
             </div>
           {% empty %}
-            <div>
-              <div colspan="6" class="text-center">No games available.</div>
+            <div class="col-12 text-center text-muted py-3">
+              <p>No games available.</p>
             </div>
           {% endfor %}
         </div>
@@ -95,13 +88,13 @@
       <div class="container-fluid mx-1 row">
         <div class="col-md-12">
           <div class="card">
-            <div class="card-header bg-dark-blue text-white border-bottom">
+            <div class="card-header bg-dark text-white border-bottom">
               <h4 class="card-title text-white text-center border-bottom mb-2">Premier League Games</h4>
             </div>
             <div class="card-body">
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table id="premier-league-table" class="table table-hover" style="background-color: white;">
-                  <thead>
+                <table id="premier-league-table" class="table table-hover table-striped table-bordered" style="background-color: white;">
+                  <thead class="table-primary text-center text-uppercase small">
                     <tr>
                       <th>Match</th>
                       <th>Date</th>
@@ -111,29 +104,29 @@
                       <th>Bet</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody class="small">
                     {% for game in games %}
-                      <tr>
+                      <tr class="{% cycle 'table-success' 'table-warning' 'table-info' %}">
                         <td>{{ game.match }}</td>
                         <td>{{ game.start_time|date:'d M Y' }}</td>
                         <td>{{ game.start_time|time:'H:i' }}</td>
                         <td>{{ game.fixed_score }}</td>
                         <td>{{ game.profit_percentage }}%</td>
                         <td>
-                          <button class="btn btn-warning w-100" onclick="placeBet(
-                                                this, 
-                                                '{{ game.match }}', 
-                                                '{{ game.start_time|date:'d M Y' }}', 
-                                                '{{ game.start_time|time:'H:i' }}',
-                                                '{{ game.fixed_score }}', 
-                                                '{{ game.profit_percentage }}',
-                                                'premier'
-                                            )"><b>Bet now</b></button>
+                          <button class="btn btn-warning btn-sm w-100" onclick="placeBet(
+                            this, 
+                            '{{ game.match }}', 
+                            '{{ game.start_time|date:'d M Y' }}', 
+                            '{{ game.start_time|time:'H:i' }}',
+                            '{{ game.fixed_score }}', 
+                            '{{ game.profit_percentage }}',
+                            'premier'
+                          )"><b>Bet now</b></button>
                         </td>
                       </tr>
                     {% empty %}
                       <tr>
-                        <td colspan="6" class="text-center">No games available.</td>
+                        <td colspan="6" class="text-center text-muted">No games available.</td>
                       </tr>
                     {% endfor %}
                   </tbody>
