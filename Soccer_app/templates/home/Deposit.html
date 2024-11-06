@@ -34,30 +34,26 @@
     <div class="tab-content" id="depositTabContent">
       <!-- Deposit Funds Tab -->
       <div class="tab-pane fade show active" id="deposit" role="tabpanel" aria-labelledby="deposit-tab">
-        <div class="row mb-5 pb-5 p-0">
-          <div class="row mx-3">
-            <div class="container-fluid d-flex justify-content-center d-block mb-2 pb-5">
-              <div class="col-md-7 me-4">
-                <div class="card card-secondary py-5 bg-white-gradient">
-                  <div class="card-body skew-shadow">
-                    <form id="depositForm">
-                      {% csrf_token %}
-                      <div class="mb-4">
-                        <label for="depositAmount" class="form-label text-white">Deposit Amount</label>
-                        <input type="number" class="form-control" id="depositAmount" name="depositAmount" required min="16500" placeholder="Minimum amount is 16,500" oninput="validateInput(this)" />
-                        <div class="invalid-feedback">Please enter an amount of at least 16,500.</div>
-                      </div>
-
-                      <div class="mb-4">
-                        <label for="depositMethod" class="form-label text-white">Deposit Method</label>
-                        <select class="form-control" id="depositMethod" name="depositMethod" required>
-                          <option value="bank">Bank Transfer</option>
-                        </select>
-                      </div>
-                      <button type="button" class="btn btn-primary" onclick="submitDeposit()">Submit Deposit</button>
-                    </form>
+        <div class="container-fluid d-flex justify-content-center d-block mb-2 pb-5">
+          <div class="col-md-7 col-12 me-4">
+            <div class="card card-secondary py-5 bg-white-gradient">
+              <div class="card-body skew-shadow">
+                <form id="depositForm">
+                  {% csrf_token %}
+                  <div class="mb-4">
+                    <label for="depositAmount" class="form-label text-white">Deposit Amount</label>
+                    <input type="number" class="form-control" id="depositAmount" name="depositAmount" required min="16500" placeholder="Minimum amount is 16,500" oninput="validateInput(this)" />
+                    <div class="invalid-feedback">Please enter an amount of at least 16,500.</div>
                   </div>
-                </div>
+
+                  <div class="mb-4">
+                    <label for="depositMethod" class="form-label text-white">Deposit Method</label>
+                    <select class="form-control" id="depositMethod" name="depositMethod" required>
+                      <option value="bank">Bank Transfer</option>
+                    </select>
+                  </div>
+                  <button type="button" class="btn btn-primary" onclick="submitDeposit()">Submit Deposit</button>
+                </form>
               </div>
             </div>
           </div>
@@ -69,7 +65,7 @@
           <h5 class="fw-bold text-center">Deposit History</h5>
           <div class="card">
             <div class="card-body">
-              <div class="table-responsive">
+              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover">
                   <thead>
                     <tr>
@@ -122,11 +118,11 @@
           Swal.fire({
             title: 'Bank Account Details',
             html: `
-                              <p><strong>Account Holder:</strong> ${account_holder_name}</p>
-                              <p><strong>Bank Name:</strong> ${bank_name}</p>
-                              <p><strong>Account Number:</strong> ${account_number}</p>
-                              <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p> <!-- Displaying Deposit Amount -->
-                          `,
+                                              <p><strong>Account Holder:</strong> ${account_holder_name}</p>
+                                              <p><strong>Bank Name:</strong> ${bank_name}</p>
+                                              <p><strong>Account Number:</strong> ${account_number}</p>
+                                              <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p> <!-- Displaying Deposit Amount -->
+                                          `,
             icon: 'info',
             showCancelButton: true,
             confirmButtonText: 'Proceed with Deposit'

@@ -28,7 +28,7 @@
                       <div class="col-sm-8">
                         <div class="d-flex align-items-center">
                           <span>{{ request.user.fullname|default:'Not set' }}</span>
-                          {% if request.user.fullname == 'Not set' %}
+                          {% if not request.user.fullname or request.user.fullname == 'Not set' %}
                             <button class="btn btn-outline-dark btn-sm ms-3" onclick="showFullNameInput()">Add Full Name</button>
                           {% endif %}
                         </div>
@@ -44,10 +44,11 @@
                       <div class="col-sm-8">
                         <div class="d-flex align-items-center">
                           <span>{{ request.user.username|default:'Not set' }}</span>
-                          {% if request.user.username == 'Not set' %}
+                          {% if not request.user.username or request.user.username == 'Not set' %}
                             <button class="btn btn-outline-dark btn-sm ms-3" onclick="showUsernameInput()">Add Username</button>
                           {% endif %}
                         </div>
+
                         <div id="username-input" style="display:none;" class="mt-2">
                           <input type="text" id="new_username" class="form-control" placeholder="Enter your username" />
                           <button class="btn btn-success btn-sm mt-2" onclick="submitUsername()">Submit</button>
