@@ -1,5 +1,7 @@
 {% load static %}
-<footer class="footer py-4 mt-5 pt-5" style="background-color:#003366; color: #f1f1f1;">
+
+<!-- Footer Section -->
+<footer class="footer py-4" style="background-color:#003366; color: #f1f1f1;">
   <div class="container-fluid">
     <div class="row">
       <!-- Brand Section -->
@@ -8,7 +10,7 @@
           <img src="{% static 'img/soccer_logo.png' %}" height="25" alt="Soccer247GV Logo" />
           SOCCER247GV
         </h5>
-        <p class="small text-light">Your premier platform for football betting, instant scores, and unbeatable odds. Join millions of fans and bet with confidence!</p>
+        <p class="small text-light">At SOCCER247GV.COM we’re committed to transparency, security, and rewarding our users. Join our growing community today and experience betting redefined.</p>
       </div>
 
       <!-- Contact Section -->
@@ -17,9 +19,8 @@
           <i class="fas fa-envelope"></i> support@soccer247gv.com
         </p>
         <p class="text-light">
-          <i class="fas fa-phone"></i> +2347096959589
+          <i class="fas fa-phone"></i> +447543174237
         </p>
-        <p></p>
       </div>
     </div>
 
@@ -37,38 +38,20 @@
 <script src="{% static 'js/core/popper.min.js' %}"></script>
 <script src="{% static 'js/core/bootstrap.min.js' %}"></script>
 
-<!-- jQuery Scrollbar -->
+<!-- Additional JS Libraries -->
 <script src="{% static 'js/plugin/jquery-scrollbar/jquery.scrollbar.min.js' %}"></script>
-
-<!-- Chart JS -->
-<script src="{% static 'js/plugin/chart.js' %}/chart.min.js' %}"></script>
-
-<!-- jQuery Sparkline -->
+<script src="{% static 'js/plugin/chart.js/chart.min.js' %}"></script>
 <script src="{% static 'js/plugin/jquery.sparkline/jquery.sparkline.min.js' %}"></script>
-
-<!-- Chart Circle -->
 <script src="{% static 'js/plugin/chart-circle/circles.min.js' %}"></script>
-
-<!-- Datatables -->
 <script src="{% static 'js/plugin/datatables/datatables.min.js' %}"></script>
-
-<!-- Bootstrap Notify -->
 <script src="{% static 'js/plugin/bootstrap-notify/bootstrap-notify.min.js' %}"></script>
-
-<!-- jQuery Vector Maps -->
 <script src="{% static 'js/plugin/jsvectormap/jsvectormap.min.js' %}"></script>
 <script src="{% static 'js/plugin/jsvectormap/world.js' %}"></script>
-
-<!-- Sweet Alert -->
 <script src="{% static 'js/plugin/sweetalert/sweetalert.min.js' %}"></script>
-
-<!-- Kaiadmin JS -->
 <script src="{% static 'js/kaiadmin.min.js' %}"></script>
 
 <script>
   $('#lineChart').sparkline([102, 109, 120, 99, 110, 105, 115], { type: 'line', height: '70', width: '100%', lineWidth: '2', lineColor: '#177dff', fillColor: 'rgba(23, 125, 255, 0.14)' })
-  
   $('#lineChart2').sparkline([99, 125, 122, 105, 110, 124, 115], { type: 'line', height: '70', width: '100%', lineWidth: '2', lineColor: '#f3545d', fillColor: 'rgba(243, 84, 93, .14)' })
-  
   $('#lineChart3').sparkline([105, 103, 123, 100, 95, 105, 115], { type: 'line', height: '70', width: '100%', lineWidth: '2', lineColor: '#ffa534', fillColor: 'rgba(255, 165, 52, .14)' })
 </script>
