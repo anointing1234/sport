@@ -1,6 +1,7 @@
 {% extends 'core/base/base.html' %}
 {% load static %}
 {% block contents %}
+  {% load humanize %}
   <div class="page-inner">
     <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
       <div>
@@ -27,11 +28,11 @@
                 <div class="card-body">
                   <div class="row mb-2">
                     <p class="text-muted mb-0 text-center">Available in your account</p>
-                    <h3 class="text-dark text-center fw-bold">₦{{ request.user.userbalance.main_balance|floatformat:2 }}</h3>
+                    <h3 class="text-dark text-center fw-bold">₦{{ request.user.userbalance.main_balance|intcomma }}</h3>
                   </div>
                   <div class="row mb-2">
                     <p class="text-muted mb-0 text-center">Total winnings</p>
-                    <h3 class="text-dark fw-bold text-center">₦{{ request.user.userbalance.total_profits|floatformat:2 }}</h3>
+                    <h3 class="text-dark fw-bold text-center">₦{{ request.user.userbalance.total_profits|intcomma }}</h3>
                   </div>
                 </div>
               </div>
