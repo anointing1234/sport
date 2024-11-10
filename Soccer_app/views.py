@@ -4,6 +4,7 @@ from django.urls import reverse
 from accounts.models import HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest,WithdrawalRequest,soccer_slider,leagues_slider
 import requests 
 from django.core.paginator import Paginator
+from django.conf.urls.static import static
 
 # Create your views here.
 def home(request):

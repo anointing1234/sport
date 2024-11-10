@@ -22,7 +22,12 @@ from datetime import timedelta
 from decimal import Decimal 
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.conf.urls.static import static
 
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -47,6 +52,8 @@ def signup(request):
     
   
 User = get_user_model()
+
+
 
 def your_signup_view(request):
     if request.method == 'POST':
@@ -156,12 +163,13 @@ def get_admin_bank_account(request):
 
 
 
-
 def process_deposit(request):
     if request.method == "POST":
         try:
+            # Fetch deposit details from form data
             amount = float(request.POST.get("depositAmount"))
             method = request.POST.get("depositMethod")
+            payment_receipt = request.FILES.get("paymentScreenshot")  # Get the uploaded file
 
             # Minimum deposit check
             if amount < 16500:
@@ -170,17 +178,18 @@ def process_deposit(request):
                     "message": "Minimum deposit is 16,500."
                 })
 
-            # Save the deposit request
+            # Save the deposit request, including the payment receipt
             DepositRequest.objects.create(
                 user=request.user,
                 amount=amount,
                 method=method,
+                payment_receipt=payment_receipt,  # Add the payment receipt
                 status="Pending"
             )
 
             return JsonResponse({
                 "success": True,
-                "message": "Deposit request sent , account will be credited shortly!"
+                "message": "Deposit request sent, account will be credited shortly!"
             })
 
         except ValueError:
@@ -193,7 +202,6 @@ def process_deposit(request):
         "success": False,
         "message": "Invalid request method."
     })
-
 
 
     
@@ -433,11 +441,8 @@ def place_bet(request):
 
 
 def check_user_package(request):
-    if request.user.is_authenticated:
-        has_package = PurchasePackage.objects.filter(user=request.user).exists()
-        return JsonResponse({'has_package': has_package})
-    return JsonResponse({'has_package': False})
-
+    has_package = PurchasePackage.objects.filter(user=request.user).exists()
+    return JsonResponse({'has_package': has_package})
 
 
 def send_pass_msg(request):

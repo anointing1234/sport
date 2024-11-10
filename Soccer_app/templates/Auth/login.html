@@ -75,13 +75,24 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
   <!-- SweetAlert2 JavaScript -->
+  <script src="{% static 'js/plugin/sweetalert/sweetalert.min.js' %}"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
   <script>
     function handleLogin(event) {
       event.preventDefault()
     
-      // Create a FormData object with the login form data
+      // Show loading spinner
+      Swal.fire({
+        title: 'Logging in...',
+        text: 'Please wait while we verify your details.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading()
+        }
+      })
+    
       const formData = new FormData(document.getElementById('LoginForm'))
     
       fetch("{% url 'signin' %}", {
@@ -94,8 +105,8 @@
       })
         .then((response) => response.json())
         .then((data) => {
+          Swal.close() // Close the loading message
           if (data.success) {
-            // Display success message
             Swal.fire({
               icon: 'success',
               title: 'Welcome!',
@@ -105,7 +116,6 @@
               window.location.href = data.redirect_url
             })
           } else {
-            // Display error message
             Swal.fire({
               icon: 'error',
               title: 'Login failed',
@@ -113,15 +123,6 @@
               confirmButtonText: 'Okay'
             })
           }
-        })
-        .catch((error) => {
-          console.error('Error:', error)
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Network error. Please try again later.',
-            confirmButtonText: 'Okay'
-          })
         })
     }
   </script>

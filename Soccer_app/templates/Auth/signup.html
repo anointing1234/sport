@@ -131,20 +131,16 @@
 
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
-
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-
     <script>
       function showBankDetails(event) {
         event.preventDefault()
-        // Hide Step 1, show Step 2
         document.getElementById('step1').classList.remove('active')
         document.getElementById('step2').classList.add('active')
       }
       
       function showUserDetails() {
-        // Hide Step 2, show Step 1
         document.getElementById('step2').classList.remove('active')
         document.getElementById('step1').classList.add('active')
       }
@@ -158,45 +154,47 @@
       function submitSignupForm(event) {
         event.preventDefault()
       
-        // Create a FormData object and append data from both forms
-        const formData = new FormData()
+        // Show loading spinner or message here
+        Swal.fire({
+          title: 'Processing...',
+          text: 'Please wait while we process your sign-up.',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading()
+          }
+        })
       
-        // Append data from Step 1
+        const formData = new FormData()
         const step1Data = new FormData(document.getElementById('signupStep1'))
         step1Data.forEach((value, key) => {
           formData.append(key, value)
         })
-      
-        // Append data from Step 2
         const step2Data = new FormData(document.getElementById('signupStep2'))
         step2Data.forEach((value, key) => {
           formData.append(key, value)
         })
       
         fetch("{% url 'register' %}", {
-          // Replace with your actual view URL name
           method: 'POST',
           body: formData,
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': '{{ csrf_token }}' // Add CSRF token for security
+            'X-CSRFToken': '{{ csrf_token }}'
           }
         })
           .then((response) => response.json())
           .then((data) => {
+            Swal.close() // Close the loading message
             if (data.success) {
-              // Show success message
               Swal.fire({
                 icon: 'success',
                 title: 'Success!',
                 text: data.message || 'You have successfully signed up!',
                 confirmButtonText: 'Okay'
               }).then(() => {
-                // Optionally redirect or perform any other action
-                window.location.href = data.redirect_url // Use the redirect URL from the response if needed
+                window.location.href = data.redirect_url
               })
             } else {
-              // Show error message
               Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -204,15 +202,6 @@
                 confirmButtonText: 'Okay'
               })
             }
-          })
-          .catch((error) => {
-            console.error('Error:', error)
-            Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: 'Network error. Please try again later.',
-              confirmButtonText: 'Okay'
-            })
           })
       }
     </script>

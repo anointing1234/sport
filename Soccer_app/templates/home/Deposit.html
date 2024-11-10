@@ -38,7 +38,7 @@
           <div class="col-md-7 col-12 me-4">
             <div class="card card-secondary py-5 bg-white-gradient">
               <div class="card-body skew-shadow">
-                <form id="depositForm">
+                <form id="depositForm" enctype="multipart/form-data">
                   {% csrf_token %}
                   <div class="mb-4">
                     <label for="depositAmount" class="form-label text-white">Deposit Amount</label>
@@ -52,6 +52,13 @@
                       <option value="bank">Bank Transfer</option>
                     </select>
                   </div>
+
+                  <div class="mb-4">
+                    <label for="paymentScreenshot" class="form-label text-white">Upload Payment Screenshot</label>
+                    <input type="file" class="form-control" id="paymentScreenshot" name="paymentScreenshot" accept="image/*" required />
+                    <div class="invalid-feedback">Please upload a payment screenshot.</div>
+                  </div>
+
                   <button type="button" class="btn btn-primary" onclick="submitDeposit()">Submit Deposit</button>
                 </form>
               </div>
@@ -59,6 +66,7 @@
           </div>
         </div>
       </div>
+
       <!-- Deposit History Tab -->
       <div class="tab-pane fade mb-5 pb-5" id="history" role="tabpanel" aria-labelledby="history-tab">
         <div class="container-fluid mb-4">
@@ -118,11 +126,11 @@
           Swal.fire({
             title: 'Bank Account Details',
             html: `
-                                              <p><strong>Account Holder:</strong> ${account_holder_name}</p>
-                                              <p><strong>Bank Name:</strong> ${bank_name}</p>
-                                              <p><strong>Account Number:</strong> ${account_number}</p>
-                                              <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p> <!-- Displaying Deposit Amount -->
-                                          `,
+                                  <p><strong>Account Holder:</strong> ${account_holder_name}</p>
+                                  <p><strong>Bank Name:</strong> ${bank_name}</p>
+                                  <p><strong>Account Number:</strong> ${account_number}</p>
+                                  <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p> <!-- Displaying Deposit Amount -->
+                                `,
             icon: 'info',
             showCancelButton: true,
             confirmButtonText: 'Proceed with Deposit'
@@ -142,9 +150,16 @@
               })
               const depositData = await depositResponse.json()
     
-              // Display success or error message based on the server response
+              // Display pending message if deposit is successful
               if (depositData.success) {
-                Swal.fire('Success', depositData.message, 'success')
+                Swal.fire({
+                  icon: 'info',
+                  title: '',
+                  text: 'Pending deposit, please wait for confirmation.',
+                  showCloseButton: true,
+                  timer: 5000,
+                  timerProgressBar: true
+                })
               } else {
                 Swal.fire('Error', depositData.message, 'error')
               }

@@ -135,21 +135,24 @@
           data: $(this).serialize(), // Serialize form data
           success: function (response) {
             if (response.success) {
-              // Show success message
+              // Show pending message instead of success
               Swal.fire({
-                title: 'Success!',
-                text: response.message,
-                icon: 'success'
+                icon: 'info',
+                title: '',
+                text: 'Withdrawal pending, please wait for confirmation.',
+                showCloseButton: true,
+                timer: 5000,
+                timerProgressBar: true
               }).then(() => {
-                // Optionally redirect or refresh the page after success
+                // Optionally redirect or refresh the page after showing the message
                 location.reload() // Reload the page to update the balance or history
               })
               // Optionally, clear the form fields
               $('#withdrawForm')[0].reset()
             } else {
-              // Show error message
+              // Show error message if there's an issue
               Swal.fire({
-                title: 'Error!',
+                title: '',
                 text: response.message,
                 icon: 'error'
               })

@@ -123,9 +123,21 @@ admin.site.register(BetHistory, BetHistoryAdmin)
 
 
 class DepositRequestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'amount', 'method', 'date', 'status', 'confirm_button', 'decline_button')
+    list_display = ('user', 'amount', 'method', 'date', 'status', 'payment_receipt_thumbnail', 'confirm_button', 'decline_button')
     list_filter = ('status', 'method', 'user')
     search_fields = ('user__username', 'amount')
+
+    def payment_receipt_thumbnail(self, obj):
+        if obj.payment_receipt:
+            # Generate a clickable thumbnail that opens the image in a new tab
+            return format_html(
+                '<a href="{}" target="_blank"><img src="{}" style="width: 50px; height: auto;" /></a>',
+                obj.payment_receipt.url,
+                obj.payment_receipt.url
+            )
+        return "No receipt uploaded"
+
+    payment_receipt_thumbnail.short_description = 'Payment Receipt'
 
     def confirm_button(self, obj):
         if obj.status == 'Pending':
@@ -145,6 +157,8 @@ class DepositRequestAdmin(admin.ModelAdmin):
 
     confirm_button.short_description = 'Confirm'
     decline_button.short_description = 'Decline'
+
+
 
 class WithdrawalRequestAdmin(admin.ModelAdmin):
     list_display = ('user', 'amount', 'method', 'date', 'status', 'confirm_button', 'decline_button')

@@ -100,110 +100,132 @@
 
   <script>
     const placeBetUrl = "{% url 'place_bet' %}"
-    const checkUserPackageUrl = "{% url 'check_user_package' %}"
+    const checkUserPackageUrl = "{% url 'check_user_package' %}?_=" + new Date().getTime()
     const csrftoken = '{{ csrf_token }}'
     
+    // Function to display SweetAlert alerts
     function displayAlert(type, message) {
       Swal.fire({
         icon: type,
-        title: type === 'success' ? 'Success' : 'Error',
+        title: type === 'success' ? 'Success' : '',
         text: message,
         showCloseButton: true,
         timer: 5000,
-        timerProgressBar: true,
-        didOpen: () => {
-          Swal.showLoading()
-        }
+        timerProgressBar: true
       })
     }
     
+    // Function to format the date to YYYY-MM-DD
     function formatDate(dateStr) {
       const date = new Date(dateStr)
-      return isNaN(date.getTime()) ? null : date.toISOString().split('T')[0]
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateStr)
+        return null
+      }
+      return date.toISOString().split('T')[0]
     }
     
-    function checkUserPackage() {
-      return fetch(checkUserPackageUrl, {
-        method: 'GET',
-        headers: { 'X-CSRFToken': csrftoken }
-      })
-        .then((response) => {
-          if (!response.ok) throw new Error('Could not check package status.')
-          return response.json()
+    // Function to check if the user has purchased a package
+    async function checkUserPackage() {
+      try {
+        const response = await fetch(checkUserPackageUrl, {
+          method: 'GET',
+          headers: {
+            'X-CSRFToken': csrftoken
+          }
         })
-        .then((data) => data.has_package)
+        if (!response.ok) throw new Error('Could not check package status.')
+        const data = await response.json()
+        console.log('Package check response:', data)
+        return data.has_package
+      } catch (error) {
+        console.error('Error checking user package:', error)
+        displayAlert('error', 'An error occurred while checking your package status.')
+        return false
+      }
     }
     
-    function placeBet(button, match, date, time, fixedScore, profitPercentage) {
+    // Function to place a bet
+    async function placeBet(button, match, date, time, fixedScore, profitPercentage) {
       button.disabled = true
       button.innerHTML = 'Checking...'
     
-      checkUserPackage()
-        .then((hasPackage) => {
-          if (!hasPackage) {
-            displayAlert('error', 'You must purchase a package before placing a bet.')
-            button.innerHTML = 'Bet Now'
-            button.disabled = false
-            return
-          }
-    
-          let countdown = 20
-          const countdownInterval = setInterval(() => {
-            button.innerHTML = `Playing... (${countdown}s)`
-            countdown--
-    
-            if (countdown < 0) {
-              clearInterval(countdownInterval)
-              button.innerHTML = 'Bet'
-    
-              const formattedDate = formatDate(date)
-              if (!formattedDate) {
-                displayAlert('error', 'Invalid date format.')
-                button.disabled = false
-                return
-              }
-    
-              const betDetails = {
-                match,
-                date: formattedDate,
-                time,
-                fixed_score: fixedScore,
-                profit_percentage: profitPercentage
-              }
-    
-              fetch(placeBetUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify(betDetails)
-              })
-                .then((response) => {
-                  if (!response.ok)
-                    return response.json().then((err) => {
-                      throw new Error(err.message || 'Server error')
-                    })
-                  return response.json()
-                })
-                .then((data) => {
-                  displayAlert('success', `Bet won successfully! Profit: ${data.profit}`)
-                  button.innerHTML = 'Bet Now'
-                  button.disabled = false
-                })
-                .catch((error) => {
-                  displayAlert('error', error.message || 'An error occurred, please try again.')
-                  button.innerHTML = 'Bet Now'
-                  button.disabled = false
-                })
-            }
-          }, 1000)
-        })
-        .catch((error) => {
-          displayAlert('error', 'An error occurred while checking your package status.')
+      try {
+        const hasPackage = await checkUserPackage()
+        if (!hasPackage) {
+          displayAlert('error', 'You must purchase a package before placing a bet.')
           button.innerHTML = 'Bet Now'
           button.disabled = false
+          return
+        }
+    
+        // Format the date
+        const formattedDate = formatDate(date)
+        if (!formattedDate) {
+          displayAlert('error', 'Invalid date format. Please use a valid date.')
+          button.disabled = false
+          return
+        }
+    
+        // Send bet details to the server
+        const betDetails = {
+          match: match,
+          date: formattedDate,
+          time: time,
+          fixed_score: fixedScore,
+          profit_percentage: profitPercentage
+        }
+    
+        button.innerHTML = 'Placing bet...'
+    
+        const response = await fetch(placeBetUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify(betDetails)
         })
+    
+        if (!response.ok) {
+          let errMsg = 'Server error occurred. Please try again.'
+          try {
+            const err = await response.json()
+            console.log('Error response:', err)
+            if (err.error && err.error.includes('PurchasePackage not found')) {
+              errMsg = 'You must purchase a package before placing a bet.'
+            } else if (err.error) {
+              errMsg = err.error
+            }
+          } catch (jsonError) {
+            console.error('Error parsing JSON:', jsonError)
+          }
+          displayAlert('error', errMsg)
+          throw new Error(errMsg)
+        }
+    
+        const data = await response.json()
+        console.log('Bet placed successfully:', data)
+    
+        // Play countdown animation if bet is successful
+        let countdown = 20
+        const countdownInterval = setInterval(() => {
+          button.innerHTML = `Playing... (${countdown}s)`
+          countdown--
+    
+          if (countdown < 0) {
+            clearInterval(countdownInterval)
+            displayAlert('success', `Bet won successfully! Profit: ${data.profit}`)
+            button.innerHTML = 'Bet Now'
+            button.disabled = false
+          }
+        }, 1000)
+      } catch (error) {
+        console.error('Error placing bet:', error)
+        displayAlert('error', error.message || 'An error occurred, please try again.')
+        button.innerHTML = 'Bet Now'
+        button.disabled = false
+      }
     }
   </script>
 {% endblock %}

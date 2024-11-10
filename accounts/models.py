@@ -253,13 +253,13 @@ class BetHistory(models.Model):
         return f"{self.match} on {self.date} at {self.time} (Placed at: {self.placed_at})"
    
    
-
 class DepositRequest(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Link to the custom user model
     amount = models.DecimalField(max_digits=15, decimal_places=2)  # Store deposit amount
     method = models.CharField(max_length=50)  # Deposit method (e.g., Bank Transfer)
     date = models.DateTimeField(auto_now_add=True)  # Automatically set the date when created
     status = models.CharField(max_length=20, choices=[('Pending', 'Pending'), ('Completed', 'Completed'), ('Failed', 'Failed')])  # Status of the deposit
+    payment_receipt = models.ImageField(upload_to='payment_receipts/', blank=True, null=True)  # Image field for payment receipt
 
     def __str__(self):
         return f"{self.user.username} - Deposit: {self.amount} ({self.status})"
