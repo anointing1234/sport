@@ -53,12 +53,6 @@
                     </select>
                   </div>
 
-                  <div class="mb-4">
-                    <label for="paymentScreenshot" class="form-label text-white">Upload Payment Screenshot</label>
-                    <input type="file" class="form-control" id="paymentScreenshot" name="paymentScreenshot" accept="image/*" required />
-                    <div class="invalid-feedback">Please upload a payment screenshot.</div>
-                  </div>
-
                   <button type="button" class="btn btn-primary" onclick="submitDeposit()">Submit Deposit</button>
                 </form>
               </div>
@@ -121,24 +115,34 @@
           // Get the deposit amount from the input field
           const depositAmount = document.getElementById('depositAmount').value
     
-          // Show SweetAlert with Bank Account Details
+          // Show SweetAlert with Bank Account Details and File Input for Screenshot
           const { account_holder_name, bank_name, account_number } = data.account
           Swal.fire({
             title: 'Bank Account Details',
             html: `
-                                  <p><strong>Account Holder:</strong> ${account_holder_name}</p>
-                                  <p><strong>Bank Name:</strong> ${bank_name}</p>
-                                  <p><strong>Account Number:</strong> ${account_number}</p>
-                                  <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p> <!-- Displaying Deposit Amount -->
-                                `,
+                            <p><strong>Account Holder:</strong> ${account_holder_name}</p>
+                            <p><strong>Bank Name:</strong> ${bank_name}</p>
+                            <p><strong>Account Number:</strong> ${account_number}</p>
+                            <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p>
+                            <input type="file" id="paymentScreenshot" accept="image/*" required style="margin-top:10px;">
+                        `,
             icon: 'info',
             showCancelButton: true,
-            confirmButtonText: 'Proceed with Deposit'
+            confirmButtonText: 'Proceed with Deposit',
+            preConfirm: () => {
+              // Validate file input before proceeding
+              const screenshotInput = Swal.getPopup().querySelector('#paymentScreenshot')
+              if (!screenshotInput.files.length) {
+                Swal.showValidationMessage(`Please upload a payment screenshot.`)
+              }
+              return screenshotInput.files[0] // Return the file for further processing
+            }
           }).then(async (result) => {
             if (result.isConfirmed) {
               // Proceed with deposit by sending form data via AJAX
               const form = document.getElementById('depositForm')
               const formData = new FormData(form)
+              formData.append('paymentScreenshot', result.value) // Append the file from SweetAlert
     
               // Make an AJAX request to process the deposit
               const depositResponse = await fetch("{% url 'proceed_to_payment' %}", {
