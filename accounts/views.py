@@ -23,6 +23,7 @@ from decimal import Decimal
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.conf.urls.static import static
+from django.core.mail import EmailMultiAlternatives
 
 
 import logging
@@ -450,7 +451,6 @@ def send_pass_msg(request):
     return render(request,'Auth/send_pass_msg.html',{'form':form})
 
 
-
 def send_password_reset_code(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -465,21 +465,32 @@ def send_password_reset_code(request):
         # Save the reset code to the database
         PasswordResetCode.objects.create(user=user, code=reset_code)
 
-        # Send the reset code via email
+        # Set email subject, plain text, and HTML content
         subject = 'Your Password Reset Code'
-        message = f'Your password reset code is: {reset_code}'
+        text_content = f'Your password reset code is: {reset_code}'
+        html_content = f'''
+        <html>
+            <body>
+                <p>Hello {user.username},</p>
+                <p>Your password reset code is:</p>
+                <h2>{reset_code}</h2>
+                <p>Please use this code to reset your password.</p>
+                <p>Thank you!</p>
+            </body>
+        </html>
+        '''
         from_email = settings.DEFAULT_FROM_EMAIL
 
+        # Send email with both plain text and HTML content
         try:
-            send_mail(subject, message, from_email, [email])
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
             return JsonResponse({'success': True, 'message': 'A password reset code has been sent to your email.'})
         except Exception as e:
             return JsonResponse({'success': False, 'message': 'Failed to send email. Please try again later.'})
 
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
-    form = PasswordResetForm()
-    return render(request,'Auth/send_pass_msg.html',{'form':form})
-
 
 
 def Passwordresetpage(request):
