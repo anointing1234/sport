@@ -68,7 +68,7 @@
                       {% if match.match_type == 'soccer' %}
                         <tr class="{% cycle 'table-success' 'table-warning' 'table-info' %}">
                           <td>{{ match.home_team }} vs {{ match.away_team }}</td>
-                          <td>{{ match.start_time|date:'d M Y' }}</td>
+                          <td>{{ match.start_time|date:'Y-m-d' }}</td>
                           <td>{{ match.start_time|time:'H:i' }}</td>
                           <td>{{ match.fixed_score }}</td>
                           <td>{{ match.profit_percentage|floatformat:'0' }}%</td>
@@ -76,10 +76,11 @@
                             <button class="btn btn-warning btn-sm w-100" onclick="placeBet(
                               this, 
                               '{{ match.home_team }} vs {{ match.away_team }}', 
-                              '{{ match.start_time|date:'d M Y' }}', 
+                              '{{ match.start_time|date:'Y-m-d' }}', 
                               '{{ match.start_time|time:'H:i' }}',
                               '{{ match.fixed_score }}', 
-                              '{{ match.profit_percentage }}'
+                              '{{ match.profit_percentage }}',
+                              '{{ match.status }}'
                             )"><b>Bet now</b></button>
                           </td>
                         </tr>
@@ -97,10 +98,11 @@
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+  -- Include SweetAlert2 -->
   <script>
     const placeBetUrl = "{% url 'place_bet' %}"
     const checkUserPackageUrl = "{% url 'check_user_package' %}?_=" + new Date().getTime()
+    const checkBetStatusUrl = "{% url 'check_bet_status' 0 %}".slice(0, -2) // Removes trailing "/0" to allow appending bet ID
     const csrftoken = '{{ csrf_token }}'
     
     // Function to display SweetAlert alerts
@@ -115,7 +117,6 @@
       })
     }
     
-    // Function to format the date to YYYY-MM-DD
     function formatDate(dateStr) {
       const date = new Date(dateStr)
       if (isNaN(date.getTime())) {
@@ -136,7 +137,6 @@
         })
         if (!response.ok) throw new Error('Could not check package status.')
         const data = await response.json()
-        console.log('Package check response:', data)
         return data.has_package
       } catch (error) {
         console.error('Error checking user package:', error)
@@ -145,8 +145,39 @@
       }
     }
     
+    // Function to check the status of the bet at regular intervals
+    function startBetStatusPolling(button, betId) {
+      const pollingInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`${checkBetStatusUrl}${betId}/`, {
+            method: 'GET',
+            headers: { 'X-CSRFToken': csrftoken }
+          })
+          const data = await response.json()
+    
+          if (data.status === 'won') {
+            displayAlert('success', `Bet won! Profit: ${data.profit}`)
+            button.innerHTML = 'Bet Won'
+            button.disabled = false
+            clearInterval(pollingInterval)
+          } else if (data.status === 'loss') {
+            displayAlert('error', 'Bet lost. No profit this time.')
+            button.innerHTML = 'Bet Lost'
+            button.disabled = false
+            clearInterval(pollingInterval)
+          } else if (data.status === 'playing') {
+            button.innerHTML = 'Bet Placed, Playing...'
+          }
+        } catch (error) {
+          console.error('Error checking bet status:', error)
+          clearInterval(pollingInterval)
+          displayAlert('error', 'An error occurred while checking bet status.')
+        }
+      }, 5000) // Poll every 5 seconds
+    }
+    
     // Function to place a bet
-    async function placeBet(button, match, date, time, fixedScore, profitPercentage) {
+    async function placeBet(button, match, date, time, fixedScore, profitPercentage, status) {
       button.disabled = true
       button.innerHTML = 'Checking...'
     
@@ -173,7 +204,8 @@
           date: formattedDate,
           time: time,
           fixed_score: fixedScore,
-          profit_percentage: profitPercentage
+          profit_percentage: profitPercentage,
+          status: status
         }
     
         button.innerHTML = 'Placing bet...'
@@ -191,7 +223,6 @@
           let errMsg = 'Server error occurred. Please try again.'
           try {
             const err = await response.json()
-            console.log('Error response:', err)
             if (err.error && err.error.includes('PurchasePackage not found')) {
               errMsg = 'You must purchase a package before placing a bet.'
             } else if (err.error) {
@@ -207,19 +238,9 @@
         const data = await response.json()
         console.log('Bet placed successfully:', data)
     
-        // Play countdown animation if bet is successful
-        let countdown = 20
-        const countdownInterval = setInterval(() => {
-          button.innerHTML = `Playing... (${countdown}s)`
-          countdown--
-    
-          if (countdown < 0) {
-            clearInterval(countdownInterval)
-            displayAlert('success', `Bet won successfully! Profit: ${data.profit}`)
-            button.innerHTML = 'Bet Now'
-            button.disabled = false
-          }
-        }, 1000)
+        // Start polling to check bet status
+        button.innerHTML = 'Bet Placed, Playing...'
+        startBetStatusPolling(button, data.bet_id) // Assuming `data.bet_id` contains the ID of the placed bet
       } catch (error) {
         console.error('Error placing bet:', error)
         displayAlert('error', error.message || 'An error occurred, please try again.')

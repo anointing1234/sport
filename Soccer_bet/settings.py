@@ -29,7 +29,7 @@ environ.Env.read_env(os.path.join(BASE_DIR,'file.env'))
 SECRET_KEY = 'django-insecure-*^x+y-u8wp0@mkj35p5g-5ge7ugiu)+5_&4ll6*#^j-cae(5#1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # DEBUG_PROPAGATE_EXCEPTIONS = True
 CSRF_TRUSTED_ORIGINS = ["https://soccer247gv.com"]
 ALLOWED_HOSTS = ["soccer247gv.com"]
@@ -118,11 +118,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Lagos'  
 
 USE_I18N = True
 
 USE_TZ = True
+
+
 
 
 # Static files (CSS, JavaScript, Images)
@@ -130,6 +132,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+
 
 
 if DEBUG:
@@ -145,6 +148,8 @@ else:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -153,6 +158,8 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER')
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+
 
 
 
@@ -174,4 +181,6 @@ LOGGING = {
         },
     },
 }
+
+
 

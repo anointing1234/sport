@@ -6,7 +6,6 @@
     .nav-tabs .nav-link {
       color: white; /* Text color for inactive tabs */
     }
-    
     /* Custom styles for active tab link */
     .nav-tabs .nav-link.active {
       color: #000; /* Change this to the desired color for the active tab */
@@ -42,17 +41,23 @@
                   {% csrf_token %}
                   <div class="mb-4">
                     <label for="depositAmount" class="form-label text-white">Deposit Amount</label>
-                    <input type="number" class="form-control" id="depositAmount" name="depositAmount" required min="16500" placeholder="Minimum amount is 16,500" oninput="validateInput(this)" />
-                    <div class="invalid-feedback">Please enter an amount of at least 16,500.</div>
+                    <select class="form-control" id="depositAmount" name="depositAmount" required>
+                      <option value="" disabled selected>Select parkage</option>
+                      <option value="16500">Standard (₦16,500)</option>
+                      <option value="32000">Basic (₦32,000.00)</option>
+                      <option value="90000">Classic (₦90,000.00)</option>
+                      <option value="1000000">Exclusive (₦1,000,000)</option>
+                      <option value="5000000">Platinum (₦5,000,000)</option>
+                      <option value="10000000">Executive (₦10,000,000)</option>
+                      <!-- Add more options as needed -->
+                    </select>
                   </div>
-
                   <div class="mb-4">
                     <label for="depositMethod" class="form-label text-white">Deposit Method</label>
                     <select class="form-control" id="depositMethod" name="depositMethod" required>
                       <option value="bank">Bank Transfer</option>
                     </select>
                   </div>
-
                   <button type="button" class="btn btn-primary" onclick="submitDeposit()">Submit Deposit</button>
                 </form>
               </div>
@@ -65,31 +70,40 @@
       <div class="tab-pane fade mb-5 pb-5" id="history" role="tabpanel" aria-labelledby="history-tab">
         <div class="container-fluid mb-4">
           <h5 class="fw-bold text-center">Deposit History</h5>
-          <div class="card">
+          <div class="card shadow-sm">
             <div class="card-body">
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-hover">
-                  <thead>
+                <table class="table table-hover align-middle">
+                  <thead class="table-dark">
                     <tr>
                       <th>Deposit Amount</th>
                       <th>Deposit Method</th>
                       <th>Date</th>
                       <th>Status</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
                     {% if Deposit_history %}
                       {% for deposit in Deposit_history %}
-                        <tr>
+                        <tr data-bs-toggle="collapse" data-bs-target="#deposit-details-{{ forloop.counter }}" aria-expanded="false" aria-controls="deposit-details-{{ forloop.counter }}">
                           <td>₦{{ deposit.amount|intcomma }}</td>
                           <td>{{ deposit.method }}</td>
                           <td>{{ deposit.date }}</td>
-                          <td>{{ deposit.status }}</td>
+                          <td>
+                            {% if deposit.status == 'Completed' %}
+                              <span class="badge bg-success">Completed</span>
+                            {% elif deposit.status == 'Pending' %}
+                              <span class="badge bg-warning text-dark">Pending</span>
+                            {% else %}
+                              <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                          </td>
                         </tr>
                       {% endfor %}
                     {% else %}
                       <tr>
-                        <td colspan="4" class="text-center">
+                        <td colspan="5" class="text-center">
                           <div class="alert alert-warning" role="alert">No deposit history available.</div>
                         </td>
                       </tr>
@@ -103,48 +117,50 @@
       </div>
     </div>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     async function submitDeposit() {
       try {
-        // Fetch Admin Bank Account Details
+        console.log('Fetching admin bank account details...')
         const response = await fetch("{% url 'get_admin_bank_account' %}")
         const data = await response.json()
     
         if (data.success) {
-          // Get the deposit amount from the input field
           const depositAmount = document.getElementById('depositAmount').value
+          const formattedDepositAmount = Number(depositAmount).toLocaleString()
     
-          // Show SweetAlert with Bank Account Details and File Input for Screenshot
           const { account_holder_name, bank_name, account_number } = data.account
           Swal.fire({
             title: 'Bank Account Details',
             html: `
-                            <p><strong>Account Holder:</strong> ${account_holder_name}</p>
-                            <p><strong>Bank Name:</strong> ${bank_name}</p>
-                            <p><strong>Account Number:</strong> ${account_number}</p>
-                            <p><strong>Deposit Amount:</strong> ₦${depositAmount}</p>
-                            <input type="file" id="paymentScreenshot" accept="image/*" required style="margin-top:10px;">
-                        `,
+                                              <p><strong>Account Holder:</strong> ${account_holder_name}</p>
+                                              <p><strong>Bank Name:</strong> ${bank_name}</p>
+                                              <p><strong>Account Number:</strong> ${account_number}</p>
+                                              <p><strong>Deposit Amount:</strong> ₦${formattedDepositAmount}</p>
+                                              <input type="file" id="paymentScreenshot" accept="image/*" required style="margin-top:10px;">
+                                            `,
             icon: 'info',
             showCancelButton: true,
             confirmButtonText: 'Proceed with Deposit',
             preConfirm: () => {
-              // Validate file input before proceeding
               const screenshotInput = Swal.getPopup().querySelector('#paymentScreenshot')
               if (!screenshotInput.files.length) {
-                Swal.showValidationMessage(`Please upload a payment screenshot.`)
+                Swal.showValidationMessage('Please upload a payment screenshot.')
+                return false
               }
-              return screenshotInput.files[0] // Return the file for further processing
+              return screenshotInput.files[0]
             }
           }).then(async (result) => {
             if (result.isConfirmed) {
-              // Proceed with deposit by sending form data via AJAX
               const form = document.getElementById('depositForm')
               const formData = new FormData(form)
-              formData.append('paymentScreenshot', result.value) // Append the file from SweetAlert
+              formData.append('paymentScreenshot', result.value)
     
-              // Make an AJAX request to process the deposit
+              const submitButton = Swal.getPopup().querySelector('.swal2-confirm')
+              submitButton.disabled = true
+    
+              console.log('Sending deposit request...')
               const depositResponse = await fetch("{% url 'proceed_to_payment' %}", {
                 method: 'POST',
                 headers: {
@@ -154,65 +170,92 @@
               })
               const depositData = await depositResponse.json()
     
-              // Display pending message if deposit is successful
+              console.log('Deposit Response:', depositData) // Log for debugging
+    
               if (depositData.success) {
+                // Ensure deposit ID is available
+                if (!depositData.deposit_id) {
+                  console.error('Deposit ID is missing in the response')
+                  Swal.fire('Error', 'Deposit ID is missing. Please try again.', 'error')
+                  return
+                }
+    
+                let timeLeft = 30 * 60 // 30 minutes in seconds
+                console.log('Deposit initiated. Starting 30-minute countdown and checking status...')
+    
                 Swal.fire({
-                  icon: 'info',
-                  title: '',
-                  text: 'Pending deposit, please wait for confirmation.',
+                  title: 'Pending deposit confirmation',
+                  html: `<span style="font-size: 18px;">⏳ <strong>Time Left:</strong> <span id="countdown">30:00</span> minutes</span>`,
                   showCloseButton: true,
-                  timer: 5000,
-                  timerProgressBar: true
+                  timerProgressBar: true,
+                  allowOutsideClick: false,
+                  didOpen: () => {
+                    Swal.showLoading()
+                    const countdownElement = Swal.getPopup().querySelector('#countdown')
+                    const countdownInterval = setInterval(() => {
+                      let minutes = Math.floor(timeLeft / 60)
+                      let seconds = timeLeft % 60
+                      seconds = seconds < 10 ? '0' + seconds : seconds
+                      countdownElement.textContent = `${minutes}:${seconds}`
+    
+                      if (timeLeft <= 0) {
+                        clearInterval(countdownInterval)
+                        Swal.fire('Time is up!', 'The deposit process has timed out.', 'warning')
+                      } else {
+                        timeLeft--
+                      }
+                    }, 1000)
+    
+                    // Poll for deposit confirmation status every 5 seconds
+                    const checkStatusInterval = setInterval(async () => {
+                      console.log('Checking deposit status...')
+    
+                      const statusResponse = await fetch("{% url 'check_deposit_status' %}", {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ depositId: depositData.deposit_id })
+                      })
+    
+                      const statusData = await statusResponse.json()
+                      console.log('Status Response:', statusData) // Log the response for debugging
+    
+                      if (statusData.success && statusData.status === 'Completed') {
+                        clearInterval(checkStatusInterval) // Stop checking
+                        clearInterval(countdownInterval) // Stop countdown
+                        Swal.fire('Success', 'Deposit successfully!', 'success').then(() => {
+                          location.reload()
+                        })
+                      } else if (statusData.success && statusData.status === 'Failed') {
+                        clearInterval(checkStatusInterval)
+                        clearInterval(countdownInterval)
+                        Swal.fire('Error', 'Deposit failed, please try again later.', 'error')
+                      } else if (!statusData.success) {
+                        console.error('Error checking status:', statusData.message)
+                      }
+                    }, 5000) // Check every 5 seconds
+                  }
                 })
               } else {
                 Swal.fire('Error', depositData.message, 'error')
+                submitButton.disabled = false
               }
             }
           })
         } else {
-          // Display error if no bank account found
           Swal.fire('Error', data.message, 'error')
         }
       } catch (error) {
+        console.error('An error occurred:', error)
         Swal.fire('Error', 'An error occurred while fetching bank account details.', 'error')
       }
     }
     
-    // Attach the submitDeposit function to the form's submit event
     document.getElementById('depositForm').addEventListener('submit', function (event) {
-      event.preventDefault() // Prevent the default form submission
-      submitDeposit() // Call the submitDeposit function
-    })
-  </script>
-
-  <script>
-    function validateInput(input) {
-      const minAmount = 16500
-    
-      // Allow empty input to handle deletions
-      if (input.value === '') {
-        input.setCustomValidity('') // Reset the custom error for empty input
-        return
-      }
-    
-      // Convert the input value to a number for comparison
-      const value = Number(input.value)
-    
-      // Check if the current value is less than the minimum
-      if (value < minAmount) {
-        input.setCustomValidity('Please enter an amount of at least 16,500.')
-      } else {
-        input.setCustomValidity('') // Reset the custom error
-      }
-    }
-    
-    // Additional check when the input loses focus
-    document.getElementById('depositAmount').addEventListener('blur', function () {
-      const minAmount = 16500
-      const value = Number(this.value)
-      if (value < minAmount) {
-        this.value = minAmount // Set the value to minimum if it's less
-      }
+      event.preventDefault()
+      submitDeposit()
     })
   </script>
 {% endblock %}

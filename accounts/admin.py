@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Account, UsersReferralPercentage, UsersBankDetail, UserBalance,HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest, WithdrawalRequest,AdminBankAccount,PurchasePackage,soccer_slider,ReferralBonus,leagues_slider
+from .models import Account, UsersReferralPercentage, UsersBankDetail, UserBalance,HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest, WithdrawalRequest,AdminBankAccount,PurchasePackage,soccer_slider,ReferralBonus,leagues_slider,WithdrawalTimeAndDate
 from django.utils.html import format_html
 from django.urls import reverse
 
@@ -22,18 +22,8 @@ class UserBalanceAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__phone', 'purchased_package_name')
 
 
-@admin.register(HotGame)
-class HotGameAdmin(admin.ModelAdmin):
-    list_display = ('home_team', 'away_team', 'fixed_score', 'start_time', 'profit_percentage')
-    list_filter = ('start_time', 'profit_percentage')
-    search_fields = ('home_team', 'away_team', 'fixed_score')
-    ordering = ('-start_time',)
-    readonly_fields = ('fixed_score',)  # Optional, if you want fixed score to be uneditable
-    fieldsets = (
-        (None, {
-            'fields': ('home_team', 'away_team', 'fixed_score', 'start_time', 'profit_percentage')
-        }),
-    )
+    
+    
 
 class ShowcaseSliderAdmin(admin.ModelAdmin):
     # Show image preview in the admin list view
@@ -81,9 +71,6 @@ class leagues_sliderAdmin(admin.ModelAdmin):
             obj.delete()                        
 
 
-class PremierLeagueGameAdmin(admin.ModelAdmin):
-    list_display = ('match','start_time', 'fixed_score', 'profit_percentage')
-    search_fields = ('match',)
 
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
@@ -91,20 +78,101 @@ class PackageAdmin(admin.ModelAdmin):
     search_fields = ('name',)  # Add search functionality by name
     list_filter = ('withdrawal_frequency',)  # Filter by withdrawal frequency
 
+
+
+@admin.register(HotGame)
+class HotGameAdmin(admin.ModelAdmin):
+    list_display = ('home_team', 'away_team', 'fixed_score', 'start_time', 'profit_percentage', 'status', 'game_status_actions')
+    list_filter = ('start_time', 'profit_percentage', 'status')
+    search_fields = ('home_team', 'away_team', 'fixed_score')
+    ordering = ('-start_time',)
+
+    def game_status_actions(self, obj):
+        if obj.status == 'playing':
+            won_url = reverse('update_game_status', args=['hot', obj.id, 'won'])
+            lost_url = reverse('update_game_status', args=['hot', obj.id, 'lost'])
+
+            return format_html(
+                '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
+                '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
+                won_url,
+                lost_url
+            )
+        return "Completed"
+
+    game_status_actions.short_description = "Actions"
+
+# For PremierLeagueGame
+@admin.register(PremierLeagueGame)
+class PremierLeagueGameAdmin(admin.ModelAdmin):
+    list_display = ('match', 'start_time', 'fixed_score', 'profit_percentage','status','game_status_actions')
+    search_fields = ('match',)
+
+    def game_status_actions(self, obj):
+        if obj.status == 'playing':
+            won_url = reverse('update_game_status', args=['premier_league', obj.id, 'won'])
+            lost_url = reverse('update_game_status', args=['premier_league', obj.id, 'lost'])
+
+            return format_html(
+                '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
+                '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
+                won_url,
+                lost_url
+            )
+        return "Completed"
+
+    game_status_actions.short_description = "Actions"
+
+# For FootballMatch
 @admin.register(FootballMatch)
 class FootballMatchAdmin(admin.ModelAdmin):
-    list_display = ('home_team', 'away_team', 'start_time', 'fixed_score', 'profit_percentage', 'match_type')
+    list_display = ('home_team', 'away_team', 'start_time', 'fixed_score', 'profit_percentage', 'match_type','status', 'game_status_actions')
     list_filter = ('match_type', 'start_time')
     search_fields = ('home_team', 'away_team')
 
+    def game_status_actions(self, obj):
+        if obj.status == 'playing':
+            won_url = reverse('update_game_status', args=['football_match', obj.id, 'won'])
+            lost_url = reverse('update_game_status', args=['football_match', obj.id, 'lost'])
+
+            return format_html(
+                '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
+                '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
+                won_url,
+                lost_url
+            )
+        return "Completed"
+
+    game_status_actions.short_description = "Actions"
+
+# For Match
 @admin.register(Match)
 class MatchAdmin(admin.ModelAdmin):
-    list_display = ('match_name', 'start_time', 'fixed_score', 'profit_percentage', 'league')  # Use start_time instead of match_date/match_time
+    list_display = ('match_name', 'start_time', 'fixed_score', 'profit_percentage', 'league','status','game_status_actions')
     list_filter = ('league',)
     search_fields = ('match_name',)
 
+    def game_status_actions(self, obj):
+        if obj.status == 'playing':
+            won_url = reverse('update_game_status', args=['match', obj.id, 'won'])
+            lost_url = reverse('update_game_status', args=['match', obj.id, 'lost'])
+
+            return format_html(
+                '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
+                '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
+                won_url,
+                lost_url
+            )
+        return "Completed"
+
+    game_status_actions.short_description = "Actions"
+
+
+
+
+
 class BetHistoryAdmin(admin.ModelAdmin):
-    list_display = ('match', 'date', 'time', 'fixed_score', 'profit_percentage', 'bet_amount', 'user','placed_at')
+    list_display = ('match', 'date', 'time', 'fixed_score', 'profit_percentage', 'bet_amount','status', 'user','placed_at')
     list_filter = ('date', 'user')  # Allows filtering by date and user
     search_fields = ('match',)  # Enables search functionality for the match field
     ordering = ('-date',)  # Orders by date descending
@@ -185,7 +253,16 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
     decline_button.short_description = 'Decline'
 
 
+@admin.register(WithdrawalTimeAndDate)
+class WithdrawalTimeAndDateAdmin(admin.ModelAdmin):
+    list_display = ['withdrawal_date', 'withdrawal_start_time', 'withdrawal_end_time']
+    search_fields = ['withdrawal_date', 'withdrawal_start_time', 'withdrawal_end_time']
 
+    def get_list_display(self, request):
+        return ['withdrawal_date', 'withdrawal_start_time', 'withdrawal_end_time']
+
+    def get_search_fields(self, request):
+        return ['withdrawal_date', 'withdrawal_start_time', 'withdrawal_end_time']
 
 
 admin.site.register(ReferralBonus)
@@ -193,7 +270,7 @@ admin.site.register(PurchasePackage)
 admin.site.register(AdminBankAccount)
 admin.site.register(DepositRequest, DepositRequestAdmin)
 admin.site.register(WithdrawalRequest, WithdrawalRequestAdmin)
-admin.site.register(PremierLeagueGame, PremierLeagueGameAdmin)
+
 # Register the model with the custom admin configuration
 soccer_slider
 admin.site.register(ShowcaseSlider, ShowcaseSliderAdmin)

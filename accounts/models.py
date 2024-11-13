@@ -7,6 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils import timezone
+from datetime import datetime, timedelta
 
 
 
@@ -121,18 +122,7 @@ class UserBalance(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Balance"
     
-    
-class HotGame(models.Model):
-    home_team = models.CharField(max_length=100)
-    away_team = models.CharField(max_length=100)
-    fixed_score = models.CharField(max_length=10)  # e.g., "9:0" or "10:4"
-    start_time = models.DateTimeField()
-    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2)  # e.g., 5.00 for 5%
-
-    def __str__(self):
-        return f"{self.home_team} vs {self.away_team}"    
-
-
+ 
 class ShowcaseSlider(models.Model):
     image = models.ImageField(upload_to='showcase_slider/')
 
@@ -175,19 +165,7 @@ class leagues_slider(models.Model):
         super().delete(*args, **kwargs)        
 
 
-
-class PremierLeagueGame(models.Model):
-    match = models.CharField(max_length=255)
-    start_time = models.DateTimeField()
-    fixed_score = models.CharField(max_length=7)
-    profit_percentage = models.PositiveIntegerField(default=3)
-
-    def __str__(self):
-        return f"{self.match} on {self.start_time.strftime('%Y-%m-%d %H:%M')}"  # Display match and start time
-
-    class Meta:
-        verbose_name = "Premier League Game"
-        verbose_name_plural = "Premier League Games"        
+       
 
 
 class Package(models.Model):
@@ -202,44 +180,15 @@ class Package(models.Model):
 
 
 
-class FootballMatch(models.Model):
-    MATCH_TYPE_CHOICES = [
-        ('live', 'Live Matches'),
-        ('soccer', 'Soccer Matches'),
-    ]
-
-    match_type = models.CharField(max_length=10, choices=MATCH_TYPE_CHOICES)
-    home_team = models.CharField(max_length=100)
-    away_team = models.CharField(max_length=100)
-    start_time = models.DateTimeField()
-    fixed_score = models.CharField(max_length=10, help_text="Format: X - Y (e.g., 2 - 1)")
-    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="Profit percentage")
-
-    def __str__(self):
-        start_time_str = self.start_time.strftime('%Y-%m-%d %H:%M') if self.start_time else 'Unknown Time'
-        return f"{self.home_team} vs {self.away_team} on {start_time_str} ({self.match_type})"    
-
-class Match(models.Model):
-    league_choices = [
-        ('PL', 'Premier League'),
-        ('LL', 'La Liga'),
-        ('BL', 'Bundesliga'),
-        ('SA', 'Serie A'),
-    ]
-    
-    league = models.CharField(max_length=2, choices=league_choices)
-    match_name = models.CharField(max_length=255)
-    start_time = models.DateTimeField()
-    fixed_score = models.CharField(max_length=10, help_text="Format: X - Y (e.g., 2 - 0)")
-    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="Profit percentage")  # e.g., 5.00 for 5%
-    
-    def __str__(self):
-        return f"{self.match_name} - {self.fixed_score} ({self.league})"    
-    
-
 
 
 class BetHistory(models.Model):
+    STATUS_CHOICES = [
+        ('playing', 'Playing'),
+        ('won', 'Won'),
+        ('loss', 'Loss'),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Use the custom user model
     match = models.CharField(max_length=255)
     date = models.DateField()  # The date of the match
@@ -248,9 +197,12 @@ class BetHistory(models.Model):
     profit_percentage = models.DecimalField(max_digits=5, decimal_places=2)  # e.g., 5.00
     bet_amount = models.DecimalField(max_digits=10, decimal_places=2)  # e.g., 100.00
     placed_at = models.DateTimeField(auto_now_add=True)  # Automatically set the date/time when the bet is placed
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')  # Status of the bet
 
     def __str__(self):
-        return f"{self.match} on {self.date} at {self.time} (Placed at: {self.placed_at})"
+        return f"{self.match} on {self.date} at {self.time} (Status: {self.status}, Placed at: {self.placed_at})"
+   
+   
    
    
 class DepositRequest(models.Model):
@@ -308,3 +260,144 @@ class PasswordResetCode(models.Model):
 
     def __str__(self):
         return f'{self.user.email} - {self.code}'
+
+
+
+class WithdrawalTimeAndDate(models.Model):
+    # This field will store the date for the global withdrawal period (input by the admin)
+    withdrawal_date = models.DateField()
+
+    # This field will store the start time for the global withdrawal period (fixed time, e.g., 09:00)
+    withdrawal_start_time = models.TimeField()
+
+    # This field will store the end time for the global withdrawal period (e.g., 12:00 AM next day)
+    withdrawal_end_time = models.TimeField()
+
+    def save(self, *args, **kwargs):
+        # If no start or end time is set, use default values
+        if not self.withdrawal_start_time:
+            self.withdrawal_start_time = datetime.strptime('09:00', '%H:%M').time()
+        if not self.withdrawal_end_time:
+            self.withdrawal_end_time = datetime.strptime('23:59', '%H:%M').time()
+
+        # If withdrawal date is not provided (default value), calculate the next Monday
+        if not self.withdrawal_date:
+            today = datetime.today()
+            days_ahead = 0 - today.weekday()  # Monday is 0 in weekday()
+            if days_ahead <= 0:  # If today is Monday, it should not skip to the next Monday
+                days_ahead += 7
+            self.withdrawal_date = today + timedelta(days=days_ahead)
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        # Format both date and time
+        return f'Withdrawal time set at {self.withdrawal_date.strftime("%d-%m-%Y")} from {self.withdrawal_start_time.strftime("%H:%M")} to {self.withdrawal_end_time.strftime("%H:%M")}'
+
+
+
+
+
+
+
+
+class HotGame(models.Model):
+    STATUS_CHOICES = [
+        ('playing', 'Playing'),
+        ('won', 'Won'),
+        ('lost', 'Lost'),
+    ]
+
+    home_team = models.CharField(max_length=100)
+    away_team = models.CharField(max_length=100)
+    fixed_score = models.CharField(max_length=10)  # e.g., "9:0" or "10:4"
+    start_time = models.DateTimeField()
+    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2)  # e.g., 5.00 for 5%
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')
+
+    def __str__(self):
+        return f"{self.home_team} vs {self.away_team}"
+
+    def get_start_time_local(self):
+        # Convert start time to the local timezone (WAT)
+        return self.start_time.astimezone(timezone.get_current_timezone())
+
+
+class PremierLeagueGame(models.Model):
+    STATUS_CHOICES = [
+        ('playing', 'Playing'),
+        ('won', 'Won'),
+        ('lost', 'Lost'),
+    ]
+
+    match = models.CharField(max_length=255)
+    start_time = models.DateTimeField()
+    fixed_score = models.CharField(max_length=7)
+    profit_percentage = models.PositiveIntegerField(default=3)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')  # Added status field
+
+    def __str__(self):
+        return f"{self.match} on {self.start_time.strftime('%Y-%m-%d %H:%M')}"  # Display match and start time
+
+    def get_start_time_local(self):
+        # Convert start time to the local timezone (WAT)
+        return self.start_time.astimezone(timezone.get_current_timezone())
+
+    class Meta:
+        verbose_name = "Premier League Game"
+        verbose_name_plural = "Premier League Games"
+
+
+class FootballMatch(models.Model):
+    MATCH_TYPE_CHOICES = [
+        ('soccer', 'Soccer Matches'),
+    ]
+    STATUS_CHOICES = [
+        ('playing', 'Playing'),
+        ('won', 'Won'),
+        ('lost', 'Lost'),
+    ]
+
+    match_type = models.CharField(max_length=10, choices=MATCH_TYPE_CHOICES)
+    home_team = models.CharField(max_length=100)
+    away_team = models.CharField(max_length=100)
+    start_time = models.DateTimeField()
+    fixed_score = models.CharField(max_length=10, help_text="Format: X - Y (e.g., 2 - 1)")
+    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="Profit percentage")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')  # Added status field
+
+    def __str__(self):
+        start_time_str = self.start_time.strftime('%Y-%m-%d %H:%M') if self.start_time else 'Unknown Time'
+        return f"{self.home_team} vs {self.away_team} on {start_time_str} ({self.match_type})"
+
+    def get_start_time_local(self):
+        # Convert start time to the local timezone (WAT)
+        return self.start_time.astimezone(timezone.get_current_timezone())
+
+
+class Match(models.Model):
+    league_choices = [
+        ('PL', 'Premier League'),
+        ('LL', 'La Liga'),
+        ('BL', 'Bundesliga'),
+        ('SA', 'Serie A'),
+    ]
+    STATUS_CHOICES = [
+        ('playing', 'Playing'),
+        ('won', 'Won'),
+        ('lost', 'Lost'),
+    ]
+
+    league = models.CharField(max_length=2, choices=league_choices)
+    match_name = models.CharField(max_length=255)
+    start_time = models.DateTimeField()
+    fixed_score = models.CharField(max_length=10, help_text="Format: X - Y (e.g., 2 - 0)")
+    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="Profit percentage")  # e.g., 5.00 for 5%
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')  # Added status field
+
+    def __str__(self):
+        return f"{self.match_name} - {self.fixed_score} ({self.league})"
+
+    def get_start_time_local(self):
+        # Convert start time to the local timezone (WAT)
+        return self.start_time.astimezone(timezone.get_current_timezone())

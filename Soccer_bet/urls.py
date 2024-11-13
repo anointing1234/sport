@@ -31,6 +31,7 @@ urlpatterns = [
     path('decline-deposit/', views.decline_deposit, name='decline_deposit'),
     path('accounts/confirm_withdrawal/', views.confirm_withdrawal, name='confirm_withdrawal'),
     path('accounts/decline_withdrawal/', views.decline_withdrawal, name='decline_withdrawal'),
+
     re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 ]

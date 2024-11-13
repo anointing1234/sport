@@ -42,10 +42,15 @@
             <!-- New Password Field -->
             <div class="mb-3">
               <label for="id_new_password" class="form-label text-light">New Password</label>
-              {{ form.new_password }}
-              {% if form.new_password.errors %}
-                <div class="text-danger">{{ form.new_password.errors }}</div>
-              {% endif %}
+              <div class="input-group">
+                {{ form.new_password }}
+                {% if form.new_password.errors %}
+                  <div class="text-danger">{{ form.new_password.errors }}</div>
+                {% endif %}
+                <div class="input-group-prepend">
+                  <span class="input-group-text d-block d-sm-none"><i class="bi bi-eye-slash" id="eyeIcon"></i></span>
+                </div>
+              </div>
             </div>
 
             <!-- Confirm Password Field -->
@@ -114,5 +119,25 @@
           })
         })
     }
+  </script>
+  <script>
+    const togglePasswordButton = document.getElementById('eyeIcon')
+    const passwordInput = document.querySelector('[name="password"]')
+    const eyeIcon = document.getElementById('eyeIcon')
+    
+    togglePasswordButton.addEventListener('click', function () {
+      // Toggle the input type between password and text
+      const type = passwordInput.type === 'password' ? 'text' : 'password'
+      passwordInput.type = type
+    
+      // Toggle the icon between eye and eye-slash
+      if (type === 'password') {
+        eyeIcon.classList.remove('bi-eye')
+        eyeIcon.classList.add('bi-eye-slash')
+      } else {
+        eyeIcon.classList.remove('bi-eye-slash')
+        eyeIcon.classList.add('bi-eye')
+      }
+    })
   </script>
 {% endblock %}

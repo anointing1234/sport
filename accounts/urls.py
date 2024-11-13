@@ -25,7 +25,9 @@ urlpatterns = [
     path('withdraw/',views.withdraw,name='withdraw'),
     path('place_bet/',views.place_bet,name='place_bet'), 
     path('update-fullname/',views.UpdateUserDetailsView.as_view(), name='update_fullname'),
-    path('update-username/',views.UpdateUserDetailsView.as_view(), name='update_username'),        
+    path('update-username/',views.UpdateUserDetailsView.as_view(), name='update_username'), 
+    path('check-bet-status/<int:bet_id>/', views.check_bet_status, name='check_bet_status'),
+    path('game/<str:game_type>/<int:game_id>/<str:action>/', views.update_game_status, name='update_game_status'),
     re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),         
 ]+ static(settings.STATIC_URL,document_root=settings.STATIC_ROOT)

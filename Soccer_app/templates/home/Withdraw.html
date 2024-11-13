@@ -81,31 +81,40 @@
       <div class="tab-pane fade mb-5 pb-5" id="history" role="tabpanel" aria-labelledby="history-tab">
         <div class="container-fluid mb-4">
           <h5 class="fw-bold text-center">Withdrawal History</h5>
-          <div class="card">
+          <div class="card shadow-sm">
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead>
+                <table class="table table-hover align-middle">
+                  <thead class="table-dark">
                     <tr>
                       <th>Withdrawal Amount</th>
                       <th>Withdraw Method</th>
                       <th>Date</th>
                       <th>Status</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
                     {% if withdrawal_history %}
                       {% for withdrawal in withdrawal_history %}
-                        <tr>
+                        <tr data-bs-toggle="collapse" data-bs-target="#details-{{ forloop.counter }}" aria-expanded="false" aria-controls="details-{{ forloop.counter }}">
                           <td>{{ withdrawal.amount }}</td>
                           <td>{{ withdrawal.method }}</td>
                           <td>{{ withdrawal.date }}</td>
-                          <td>{{ withdrawal.status }}</td>
+                          <td>
+                            {% if withdrawal.status == 'Completed' %}
+                              <span class="badge bg-success">Completed</span>
+                            {% elif withdrawal.status == 'Pending' %}
+                              <span class="badge bg-warning text-dark">Pending</span>
+                            {% else %}
+                              <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                          </td>
                         </tr>
                       {% endfor %}
                     {% else %}
                       <tr>
-                        <td colspan="4" class="text-center">
+                        <td colspan="5" class="text-center">
                           <div class="alert alert-warning" role="alert">No withdrawal history available.</div>
                         </td>
                       </tr>
@@ -135,20 +144,18 @@
           data: $(this).serialize(), // Serialize form data
           success: function (response) {
             if (response.success) {
-              // Show pending message instead of success
               Swal.fire({
-                icon: 'info',
-                title: '',
-                text: 'Withdrawal pending, please wait for confirmation.',
+                title: 'Pending withdrawal confirmation',
+                html: `<span style="font-size: 18px;">⏳ Please wait patiently, you will be credited soon.</span>`,
                 showCloseButton: true,
-                timer: 5000,
-                timerProgressBar: true
-              }).then(() => {
-                // Optionally redirect or refresh the page after showing the message
-                location.reload() // Reload the page to update the balance or history
+                allowOutsideClick: false,
+                timer: 10000, // Automatically close after 10 seconds
+                timerProgressBar: true,
+                willClose: () => {
+                  // Optional: You could reload the page or perform any other action if needed here
+                  location.reload() // Reloads page after SweetAlert closes
+                }
               })
-              // Optionally, clear the form fields
-              $('#withdrawForm')[0].reset()
             } else {
               // Show error message if there's an issue
               Swal.fire({
