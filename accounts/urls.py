@@ -24,6 +24,7 @@ urlpatterns = [
     path('reset_password/',views.Passwordresetpage, name='reset_password'),
     path('withdraw/',views.withdraw,name='withdraw'),
     path('place_bet/',views.place_bet,name='place_bet'), 
+    path('check_deposit_status',views.check_deposit_status,name='check_deposit_status'),
     path('update-fullname/',views.UpdateUserDetailsView.as_view(), name='update_fullname'),
     path('update-username/',views.UpdateUserDetailsView.as_view(), name='update_username'), 
     path('check-bet-status/<int:bet_id>/', views.check_bet_status, name='check_bet_status'),

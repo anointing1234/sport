@@ -2,6 +2,7 @@
 {% load static %}
 {% block contents %}
   {% load humanize %}
+
   <style>
     .nav-tabs .nav-link {
       color: white; /* Text color for inactive tabs */
@@ -119,6 +120,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <script>
     async function submitDeposit() {
       try {
@@ -134,12 +136,12 @@
           Swal.fire({
             title: 'Bank Account Details',
             html: `
-                                              <p><strong>Account Holder:</strong> ${account_holder_name}</p>
-                                              <p><strong>Bank Name:</strong> ${bank_name}</p>
-                                              <p><strong>Account Number:</strong> ${account_number}</p>
-                                              <p><strong>Deposit Amount:</strong> ₦${formattedDepositAmount}</p>
-                                              <input type="file" id="paymentScreenshot" accept="image/*" required style="margin-top:10px;">
-                                            `,
+                                                          <p><strong>Account Holder:</strong> ${account_holder_name}</p>
+                                                          <p><strong>Bank Name:</strong> ${bank_name}</p>
+                                                          <p><strong>Account Number:</strong> ${account_number}</p>
+                                                          <p><strong>Deposit Amount:</strong> ₦${formattedDepositAmount}</p>
+                                                          <input type="file" id="paymentScreenshot" accept="image/*" required style="margin-top:10px;">
+                                                        `,
             icon: 'info',
             showCancelButton: true,
             confirmButtonText: 'Proceed with Deposit',
