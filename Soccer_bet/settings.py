@@ -29,7 +29,7 @@ environ.Env.read_env(os.path.join(BASE_DIR,'file.env'))
 SECRET_KEY = 'django-insecure-*^x+y-u8wp0@mkj35p5g-5ge7ugiu)+5_&4ll6*#^j-cae(5#1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # DEBUG_PROPAGATE_EXCEPTIONS = True
 CSRF_TRUSTED_ORIGINS = ["https://soccer247gv.com"]
 ALLOWED_HOSTS = ["soccer247gv.com"]
@@ -135,12 +135,12 @@ MEDIA_URL = '/media/'
 
 
 
-if DEBUG:
-    STATICFILES_DIRS = [ os.path.join(BASE_DIR,'static') ]
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# if DEBUG:
+STATICFILES_DIRS = [ os.path.join(BASE_DIR,'static') ]
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# else:
+STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
