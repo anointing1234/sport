@@ -508,6 +508,8 @@ def verify_reset_code(user, code):
 
 
 
+
+
 def withdraw(request):
     if request.method == 'POST':
         withdraw_amount = Decimal(request.POST.get('withdrawAmount'))  # Use Decimal for the amount
@@ -531,12 +533,12 @@ def withdraw(request):
                 'message': 'Withdrawal time is not set.'
             })
 
-        # Get the current date and time
-        current_datetime = timezone.now()
+        # Get the current date and time in Nigerian timezone (Africa/Lagos)
+        current_datetime = timezone.localtime(timezone.now())  # Convert to Nigerian time
         current_date = current_datetime.date()  # Get the current date
         current_time = current_datetime.time()  # Get the current time
 
-        # Check if the current date matches the withdrawal date
+        # Check if the current date is before the withdrawal start date
         if current_date < withdrawal_time_db.withdrawal_date:
             return JsonResponse({
                 'success': False,
@@ -551,7 +553,7 @@ def withdraw(request):
         if withdrawal_end_time == datetime.strptime('00:00', '%H:%M').time():
             withdrawal_end_time = (datetime.combine(current_date, withdrawal_end_time) + timedelta(days=1) - timedelta(seconds=1)).time()
 
-        # Check if the current time is within the allowed withdrawal window
+        # Check if the current date and time are within the allowed withdrawal window
         if current_date == withdrawal_time_db.withdrawal_date:
             # Check if current time is before the start time
             if current_time < withdrawal_start_time:
@@ -566,6 +568,13 @@ def withdraw(request):
                     'success': False,
                     'message': f'Withdrawals can only be made until {withdrawal_end_time.strftime("%H:%M")}.'
                 })
+        
+        # If current date is after the allowed withdrawal date
+        if current_date > withdrawal_time_db.withdrawal_date:
+            return JsonResponse({
+                'success': False,
+                'message': f'Withdrawals are no longer allowed after {withdrawal_time_db.withdrawal_date.strftime("%d-%m-%Y")}.'
+            })
 
         # Check if there are sufficient funds
         if user_balance.main_balance >= withdraw_amount:
@@ -599,7 +608,6 @@ def withdraw(request):
         'message': 'Invalid request method.'
     })
 
-
  
 class UpdateUserDetailsView(View):
 
@@ -622,7 +630,6 @@ class UpdateUserDetailsView(View):
 
 
 
- # Default redirect to admin index if no match found
 def update_game_status(request, game_type, game_id, action):
     # Determine which game model to update based on the game_type
     if game_type == 'hot':
@@ -641,14 +648,38 @@ def update_game_status(request, game_type, game_id, action):
     if action == 'won':
         game.status = 'won'
         messages.success(request, f"Game '{game}' marked as Won!")
-        # Update all bets associated with this match to 'won'
-        BetHistory.objects.filter(match=game).update(status='won')
+        
+        # Determine the match identifier for the BetHistory model
+        if isinstance(game, FootballMatch):
+            match_identifier = f"{game.home_team} vs {game.away_team}"
+        elif isinstance(game, HotGame):
+            match_identifier = f"{game.home_team} vs {game.away_team}"
+        elif isinstance(game, PremierLeagueGame):
+            match_identifier = game.match  # PremierLeagueGame has 'match' field
+        elif isinstance(game, Match):
+            match_identifier = game.match_name  # Match has 'match_name' field
+        
+        # Update all bets associated with this match that are 'playing' to 'won'
+        bet_history_updated_count = BetHistory.objects.filter(match=match_identifier, status='playing').update(status='won')
+        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'won' for match: {match_identifier}")
         
     elif action == 'lost':
         game.status = 'lost'
         messages.error(request, f"Game '{game}' marked as Lost!")
-        # Update all bets associated with this match to 'lost'
-        BetHistory.objects.filter(match=game).update(status='lost')
+        
+        # Determine the match identifier for the BetHistory model
+        if isinstance(game, FootballMatch):
+            match_identifier = f"{game.home_team} vs {game.away_team}"
+        elif isinstance(game, HotGame):
+            match_identifier = f"{game.home_team} vs {game.away_team}"
+        elif isinstance(game, PremierLeagueGame):
+            match_identifier = game.match  # PremierLeagueGame has 'match' field
+        elif isinstance(game, Match):
+            match_identifier = game.match_name  # Match has 'match_name' field
+        
+        # Update all bets associated with this match that are 'playing' to 'lost'
+        bet_history_updated_count = BetHistory.objects.filter(match=match_identifier, status='playing').update(status='lost')
+        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'loss' for match: {match_identifier}")
         
     else:
         messages.error(request, "Invalid action.")
@@ -672,132 +703,9 @@ def update_game_status(request, game_type, game_id, action):
 
 
 
-
-
-# def place_bet(request):
-#     if request.method == 'POST':
-#         user = request.user
-#         try:
-#             # Load and log the received JSON data
-#             bet_details = json.loads(request.body)
-          
-#             match = bet_details.get('match')
-#             date_str = bet_details.get('date')  # Match date as string
-#             time_str = bet_details.get('time')  # Match time as string
-#             fixed_score = bet_details.get('fixed_score')
-#             bet_status = bet_details.get('status')
-
-#             # Validate and convert profit_percentage
-#             try:
-#                 profit_percentage = Decimal(bet_details.get('profit_percentage'))
-#             except (ValueError, InvalidOperation) as e:
-#                 logger.error(f"Invalid profit percentage: {e}")
-#                 return JsonResponse({'error': 'Invalid profit percentage provided.'}, status=400)
-
-#             # Parse match start date and time from the strings provided
-#             try:
-#                 # Match start time as timezone-aware datetime in Africa/Lagos timezone
-#                 match_start_time = timezone.make_aware(
-#                     datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M"),
-#                     timezone=pytz_timezone('Africa/Lagos')  # Set timezone to Nigeria time (WAT)
-#                 )
-#             except ValueError:
-#                 logger.error("Invalid date or time format in bet details.")
-#                 return JsonResponse({'error': 'Invalid date or time format provided.'}, status=400)
-
-#             # Check if the current date and time are after the match start time
-#             current_time = timezone.now()
-
-#             # Convert current time to Nigeria time zone (Africa/Lagos)
-#             current_time = current_time.astimezone(pytz_timezone('Africa/Lagos'))
-
-#             # Debugging log to print both current time and match start time
-#             logger.debug(f"Current time: {current_time} (Timezone: {current_time.tzinfo})")
-#             logger.debug(f"Match start time: {match_start_time} (Timezone: {match_start_time.tzinfo})")
-
-#             # Extract only the date (without time) in the Africa/Lagos timezone
-#             match_start_date = match_start_time.astimezone(pytz_timezone('Africa/Lagos')).date()
-
-#             # Get today's date in Africa/Lagos timezone
-#             current_date = current_time.date()
-
-#             # Compare the current date and match start date
-#             if current_date != match_start_date:
-#                 logger.warning(f"Betting attempt on a different date from the match date: "
-#                                f"Current Date: {current_date} vs Match Date: {match_start_date}")
-#                 logger.warning(f"Received bet details: {bet_details}")
-
-#                 return JsonResponse({'error': 'Betting is only allowed on the match day.'}, status=400)
-
-#             # Check if the current time is before the match start time
-#             if current_time < match_start_time:
-#                 logger.warning(f"Betting attempt before the scheduled match start time: "
-#                                f"Current Time: {current_time} vs Match Start Time: {match_start_time}")
-#                 return JsonResponse({'error': 'Bet has not started yet. Please wait for the match to start.'}, status=400)
-
-#             # Check if the game status is "playing"
-#             if bet_status != "playing":
-#                 logger.warning("Game is not available for betting.")
-#                 return JsonResponse({'error': 'Game not available.'}, status=400)
-
-#             # Check the number of bets placed today
-#             today = timezone.now().date()
-#             bet_count = BetHistory.objects.filter(user=user, placed_at__date=today).count()
-
-#             if bet_count >= 3:
-#                 logger.warning(f"User {user.id} exceeded daily bet limit.")
-#                 return JsonResponse({'error': 'Betting exceeded: You can only bet 3 times a day.'}, status=400)
-
-#             try:
-#                 # Check if user has a purchased package
-#                 user_balance = UserBalance.objects.get(user=user)
-#                 purchased_package = PurchasePackage.objects.get(name=user_balance.purchased_package_name)
-
-#                 # Convert purchased_package.amount to Decimal
-#                 package_amount = Decimal(purchased_package.amount)
-
-#                 # Calculate profit based on the purchased package and profit percentage
-#                 profit = (package_amount * profit_percentage) / 100
-
-#                 # Update user's main balance
-#                 user_balance.main_balance += profit
-#                 user_balance.total_profits += profit
-#                 user_balance.save()
-
-#                 # Create a new BetHistory entry
-#                 BetHistory.objects.create(
-#                     user=user,
-#                     match=match,
-#                     date=date_str,
-#                     time=time_str,
-#                     fixed_score=fixed_score,
-#                     profit_percentage=profit_percentage,
-#                     bet_amount=profit,
-#                 )
-#                 formatted_profit = f"{profit:,.2f}"
-#                 return JsonResponse({'message': 'Bet placed successfully!', 'profit': formatted_profit}, status=200)
-
-#             except PurchasePackage.DoesNotExist:
-#                 logger.error(f"PurchasePackage not found for user {user.id}.")
-#                 return JsonResponse({'error': 'Please purchase a package before placing a bet.'}, status=400)
-#             except UserBalance.DoesNotExist:
-#                 logger.error(f"UserBalance not found for user {user.id}.")
-#                 return JsonResponse({'error': 'User balance not found.'}, status=400)
-
-#         except json.JSONDecodeError as e:
-#             logger.error(f"JSON decoding error: {e}")
-#             return JsonResponse({'error': 'Invalid JSON provided.'}, status=400)
-#         except Exception as e:
-#             logger.error(f"An unexpected error occurred: {str(e)}")
-#             return JsonResponse({'error': f'An unexpected error occurred: {str(e)}'}, status=500)
-
-#     logger.warning("Invalid request method for place_bet endpoint.")
-#     return JsonResponse({'error': 'Invalid request method.'}, status=405)
-
-
-
 from django.db import transaction
 from django.db.models import F
+
 
 
 def check_bet_status(request, bet_id):
@@ -810,12 +718,18 @@ def check_bet_status(request, bet_id):
             # Use a transaction to ensure atomicity
             with transaction.atomic():
                 user_balance = UserBalance.objects.select_for_update().get(user=request.user)
-                purchased_package = PurchasePackage.objects.get(name=user_balance.purchased_package_name)
+                
+                # Safely handle multiple PurchasePackage records
+                purchased_package = PurchasePackage.objects.filter(
+                    name=user_balance.purchased_package_name, user=request.user
+                ).first()  # Using first() to avoid multiple results
+                
+                if not purchased_package:
+                    return JsonResponse({'error': 'Purchased package not found'}, status=404)
 
                 # Calculate profit based on the user's package amount and the match profit percentage
                 package_amount = purchased_package.amount
                 profit = (package_amount * bet_history.profit_percentage) / 100
-                
                 
                 bet_history.bet_amount = profit  # Set bet_amount to just the profit
                 bet_history.save(update_fields=['bet_amount'])
@@ -850,8 +764,6 @@ def check_bet_status(request, bet_id):
 
 
 
-
-
 def place_bet(request):
     if request.method == 'POST':
         user = request.user
@@ -863,6 +775,8 @@ def place_bet(request):
             time_str = bet_details.get('time')
             fixed_score = bet_details.get('fixed_score')
             bet_status = bet_details.get('status')
+           
+            logger.warning(f"Received Bet Details - Match: {match}, Date: {date_str}, Time: {time_str}, Fixed Score: {fixed_score}, Status: {bet_status}")
 
             # Validate and convert profit_percentage
             try:
@@ -911,12 +825,21 @@ def place_bet(request):
             # Check for purchased package and user balance
             try:
                 user_balance = UserBalance.objects.get(user=user)
-                
-                purchased_package = PurchasePackage.objects.get(name=user_balance.purchased_package_name)
-                
-               
+
+                # Use filter to handle multiple PurchasePackage entries
+                purchased_packages = PurchasePackage.objects.filter(name=user_balance.purchased_package_name)
+
+                if purchased_packages.count() == 1:
+                    purchased_package = purchased_packages.first()
+                elif purchased_packages.count() > 1:
+                    logger.warning(f"Multiple PurchasePackages found for user {user.id}. Using the first one.")
+                    purchased_package = purchased_packages.first()  # or you can handle this differently
+                else:
+                    logger.error(f"No PurchasePackage found for user {user.id}.")
+                    return JsonResponse({'error': 'Please purchase a package before placing a bet.'}, status=400)
+
                 purchased_package_amount = purchased_package.amount 
-               
+
                 # Save bet in BetHistory
                 bet_history = BetHistory.objects.create(
                     user=request.user,
@@ -951,8 +874,6 @@ def place_bet(request):
 
     logger.warning("Invalid request method for place_bet endpoint.")
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
-
-
 
 
     

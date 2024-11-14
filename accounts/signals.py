@@ -10,3 +10,11 @@ def create_user_related_models(sender, instance, created, **kwargs):
     # Only create related models if the user is newly created and not a superuser
     UserBalance.objects.get_or_create(user=instance)
     
+    
+ 
+ 
+ 
+ 
+    
+    
+    

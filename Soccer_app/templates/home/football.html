@@ -98,7 +98,8 @@
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  -- Include SweetAlert2 -->
+
+  <!-- Include SweetAlert2 -->
   <script>
     const placeBetUrl = "{% url 'place_bet' %}"
     const checkUserPackageUrl = "{% url 'check_user_package' %}?_=" + new Date().getTime()
@@ -128,6 +129,7 @@
     
     // Function to check if the user has purchased a package
     async function checkUserPackage() {
+      console.log('Checking if user has purchased a package...')
       try {
         const response = await fetch(checkUserPackageUrl, {
           method: 'GET',
@@ -137,6 +139,7 @@
         })
         if (!response.ok) throw new Error('Could not check package status.')
         const data = await response.json()
+        console.log('Package check result:', data)
         return data.has_package
       } catch (error) {
         console.error('Error checking user package:', error)
@@ -147,6 +150,7 @@
     
     // Function to check the status of the bet at regular intervals
     function startBetStatusPolling(button, betId) {
+      console.log('Starting bet status polling for Bet ID:', betId)
       const pollingInterval = setInterval(async () => {
         try {
           const response = await fetch(`${checkBetStatusUrl}${betId}/`, {
@@ -154,6 +158,7 @@
             headers: { 'X-CSRFToken': csrftoken }
           })
           const data = await response.json()
+          console.log('Bet status response:', data)
     
           if (data.status === 'won') {
             displayAlert('success', `Bet won! Profit: ${data.profit}`)
@@ -180,9 +185,11 @@
     async function placeBet(button, match, date, time, fixedScore, profitPercentage, status) {
       button.disabled = true
       button.innerHTML = 'Checking...'
+      console.log('Placing bet with details:', { match, date, time, fixedScore, profitPercentage, status })
     
       try {
         const hasPackage = await checkUserPackage()
+        console.log('User package check:', hasPackage)
         if (!hasPackage) {
           displayAlert('error', 'You must purchase a package before placing a bet.')
           button.innerHTML = 'Bet Now'
@@ -207,6 +214,7 @@
           profit_percentage: profitPercentage,
           status: status
         }
+        console.log('Sending bet details:', betDetails)
     
         button.innerHTML = 'Placing bet...'
     
@@ -223,6 +231,7 @@
           let errMsg = 'Server error occurred. Please try again.'
           try {
             const err = await response.json()
+            console.error('Server response error:', err)
             if (err.error && err.error.includes('PurchasePackage not found')) {
               errMsg = 'You must purchase a package before placing a bet.'
             } else if (err.error) {

@@ -21,19 +21,176 @@
     <div class="container-fluid mb-5 pb-5 p-0">
       <ul class="nav nav-tabs" id="matchTabs" role="tablist">
         <li class="nav-item" role="presentation">
-          <a class="nav-link active" id="bets-tab" data-bs-toggle="tab" href="#bets" role="tab" aria-controls="bets" aria-selected="true">Bets</a>
+          <a class="nav-link {% if current_tab == 'bets' or current_tab == '' %}active{% endif %}"
+            id="bets-tab"
+            data-bs-toggle="tab"
+            href="#bets"
+            role="tab"
+            aria-controls="bets"
+            aria-selected="{% if current_tab == 'bets' or current_tab == '' %}
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              true
+
+
+
+
+
+
+
+
+
+
+            {% else %}
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              false
+
+
+
+
+
+
+
+
+
+
+            {% endif %}">
+            Bets
+          </a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+          <a class="nav-link {% if current_tab == 'wins' %}active{% endif %}"
+            id="wins-tab"
+            data-bs-toggle="tab"
+            href="#wins"
+            role="tab"
+            aria-controls="wins"
+            aria-selected="{% if current_tab == 'wins' %}
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              true
+
+
+
+
+
+
+
+
+
+
+            {% else %}
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              false
+
+
+
+
+
+
+
+
+
+
+            {% endif %}">
+            Wins
+          </a>
         </li>
         <li class="nav-item" role="presentation">
-          <a class="nav-link" id="wins-tab" data-bs-toggle="tab" href="#wins" role="tab" aria-controls="wins" aria-selected="false">Wins</a>
-        </li>
-        <li class="nav-item" role="presentation">
-          <a class="nav-link" id="losses-tab" data-bs-toggle="tab" href="#losses" role="tab" aria-controls="losses" aria-selected="false">Losses</a>
+          <a class="nav-link {% if current_tab == 'losses' %}active{% endif %}"
+            id="losses-tab"
+            data-bs-toggle="tab"
+            href="#losses"
+            role="tab"
+            aria-controls="losses"
+            aria-selected="{% if current_tab == 'losses' %}
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              true
+
+
+
+
+
+
+
+
+
+
+            {% else %}
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              false
+
+
+
+
+
+
+
+
+
+
+            {% endif %}">
+            Losses
+          </a>
         </li>
       </ul>
 
       <div class="tab-content mt-3" id="matchTabsContent">
         <!-- Bets Tab Pane -->
-        <div class="tab-pane fade show active" id="bets" role="tabpanel" aria-labelledby="bets-tab">
+        <div class="tab-pane fade {% if current_tab == 'bets' or current_tab == '' %}show active{% endif %}" id="bets" role="tabpanel" aria-labelledby="bets-tab">
           <div class="card">
             <div class="card-body">
               <div class="table-responsive">
@@ -45,18 +202,18 @@
                       <th>Time</th>
                       <th>Fixed Score</th>
                       <th>Profit</th>
-                      <th>Bet Profit</th>
+                      <th>Bet status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for bet in bets %}
+                    {% for bet in playing_bets %}
                       <tr>
                         <td>{{ bet.match }}</td>
                         <td>{{ bet.date }}</td>
                         <td>{{ bet.time }}</td>
                         <td>{{ bet.fixed_score }}</td>
                         <td>{{ bet.profit_percentage }}%</td>
-                        <td>{{ bet.bet_amount }}</td>
+                        <td>{{ bet.status }}</td>
                       </tr>
                     {% empty %}
                       <tr>
@@ -65,35 +222,16 @@
                     {% endfor %}
                   </tbody>
                 </table>
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                      {% if bets.has_previous %}
-                        <li class="page-item">
-                          <a class="page-link" href="?tab=bets&page={{ bets.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-                        </li>
-                      {% endif %}
-
-                      {% for num in bets.paginator.page_range %}
-                        {% if bets.number == num %}
-                          <li class="page-item active" aria-current="page">
-                            <span class="page-link">{{ num }}</span>
-                          </li>
-                        {% else %}
-                          <li class="page-item">
-                            <a class="page-link" href="?tab=bets&page={{ num }}">{{ num }}</a>
-                          </li>
-                        {% endif %}
-                      {% endfor %}
-
-                      {% if bets.has_next %}
-                        <li class="page-item">
-                          <a class="page-link" href="?tab=bets&page={{ bets.next_page_number }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-                        </li>
-                      {% endif %}
-                    </ul>
-                  </nav>
-                  <span>Page {{ bets.number }} of {{ bets.paginator.num_pages }}</span>
+                <div class="pagination-wrapper">
+                  {% if playing_bets.has_previous %}
+                    <a href="?tab=bets&page=1" class="btn btn-primary">First</a>
+                    <a href="?tab=bets&page={{ playing_bets.previous_page_number }}" class="btn btn-primary">Previous</a>
+                  {% endif %}
+                  <span>Page {{ playing_bets.number }} of {{ playing_bets.paginator.num_pages }}</span>
+                  {% if playing_bets.has_next %}
+                    <a href="?tab=bets&page={{ playing_bets.next_page_number }}" class="btn btn-primary">Next</a>
+                    <a href="?tab=bets&page={{ playing_bets.paginator.num_pages }}" class="btn btn-primary">Last</a>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -101,7 +239,7 @@
         </div>
 
         <!-- Wins Tab Pane -->
-        <div class="tab-pane fade" id="wins" role="tabpanel" aria-labelledby="wins-tab">
+        <div class="tab-pane fade {% if current_tab == 'wins' %}show active{% endif %}" id="wins" role="tabpanel" aria-labelledby="wins-tab">
           <div class="card">
             <div class="card-body">
               <div class="table-responsive">
@@ -117,7 +255,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {% for win in wins %}
+                    {% for win in won_bets %}
                       <tr>
                         <td>{{ win.match }}</td>
                         <td>{{ win.date }}</td>
@@ -133,35 +271,16 @@
                     {% endfor %}
                   </tbody>
                 </table>
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                      {% if wins.has_previous %}
-                        <li class="page-item">
-                          <a class="page-link" href="?tab=wins&page={{ wins.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-                        </li>
-                      {% endif %}
-
-                      {% for num in wins.paginator.page_range %}
-                        {% if wins.number == num %}
-                          <li class="page-item active" aria-current="page">
-                            <span class="page-link">{{ num }}</span>
-                          </li>
-                        {% else %}
-                          <li class="page-item">
-                            <a class="page-link" href="?tab=wins&page={{ num }}">{{ num }}</a>
-                          </li>
-                        {% endif %}
-                      {% endfor %}
-
-                      {% if wins.has_next %}
-                        <li class="page-item">
-                          <a class="page-link" href="?tab=wins&page={{ wins.next_page_number }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-                        </li>
-                      {% endif %}
-                    </ul>
-                  </nav>
-                  <span>Page {{ wins.number }} of {{ wins.paginator.num_pages }}</span>
+                <div class="pagination-wrapper">
+                  {% if won_bets.has_previous %}
+                    <a href="?tab=wins&page=1" class="btn btn-primary">First</a>
+                    <a href="?tab=wins&page={{ won_bets.previous_page_number }}" class="btn btn-primary">Previous</a>
+                  {% endif %}
+                  <span>Page {{ won_bets.number }} of {{ won_bets.paginator.num_pages }}</span>
+                  {% if won_bets.has_next %}
+                    <a href="?tab=wins&page={{ won_bets.next_page_number }}" class="btn btn-primary">Next</a>
+                    <a href="?tab=wins&page={{ won_bets.paginator.num_pages }}" class="btn btn-primary">Last</a>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -169,7 +288,7 @@
         </div>
 
         <!-- Losses Tab Pane -->
-        <div class="tab-pane fade" id="losses" role="tabpanel" aria-labelledby="losses-tab">
+        <div class="tab-pane fade {% if current_tab == 'losses' %}show active{% endif %}" id="losses" role="tabpanel" aria-labelledby="losses-tab">
           <div class="card">
             <div class="card-body">
               <div class="table-responsive">
@@ -180,19 +299,17 @@
                       <th>Date</th>
                       <th>Time</th>
                       <th>Fixed Score</th>
-                      <th>Profit</th>
-                      <th>Profit Loss</th>
+                      <th>Bet status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for loss in losses %}
+                    {% for loss in lost_bets %}
                       <tr>
                         <td>{{ loss.match }}</td>
                         <td>{{ loss.date }}</td>
                         <td>{{ loss.time }}</td>
                         <td>{{ loss.fixed_score }}</td>
-                        <td>{{ loss.profit_percentage }}%</td>
-                        <td>{{ loss.bet_amount }}</td>
+                        <td>{{ loss.status }}</td>
                       </tr>
                     {% empty %}
                       <tr>
@@ -201,35 +318,16 @@
                     {% endfor %}
                   </tbody>
                 </table>
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                  <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                      {% if losses.has_previous %}
-                        <li class="page-item">
-                          <a class="page-link" href="?tab=losses&page={{ losses.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-                        </li>
-                      {% endif %}
-
-                      {% for num in losses.paginator.page_range %}
-                        {% if losses.number == num %}
-                          <li class="page-item active" aria-current="page">
-                            <span class="page-link">{{ num }}</span>
-                          </li>
-                        {% else %}
-                          <li class="page-item">
-                            <a class="page-link" href="?tab=losses&page={{ num }}">{{ num }}</a>
-                          </li>
-                        {% endif %}
-                      {% endfor %}
-
-                      {% if losses.has_next %}
-                        <li class="page-item">
-                          <a class="page-link" href="?tab=losses&page={{ losses.next_page_number }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-                        </li>
-                      {% endif %}
-                    </ul>
-                  </nav>
-                  <span>Page {{ losses.number }} of {{ losses.paginator.num_pages }}</span>
+                <div class="pagination-wrapper">
+                  {% if lost_bets.has_previous %}
+                    <a href="?tab=losses&page=1" class="btn btn-primary">First</a>
+                    <a href="?tab=losses&page={{ lost_bets.previous_page_number }}" class="btn btn-primary">Previous</a>
+                  {% endif %}
+                  <span>Page {{ lost_bets.number }} of {{ lost_bets.paginator.num_pages }}</span>
+                  {% if lost_bets.has_next %}
+                    <a href="?tab=losses&page={{ lost_bets.next_page_number }}" class="btn btn-primary">Next</a>
+                    <a href="?tab=losses&page={{ lost_bets.paginator.num_pages }}" class="btn btn-primary">Last</a>
+                  {% endif %}
                 </div>
               </div>
             </div>

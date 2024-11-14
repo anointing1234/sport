@@ -238,19 +238,19 @@ class AdminBankAccount(models.Model):
 
 
 class PurchasePackage(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Link to the custom user model
-    name = models.CharField(max_length=100)  # Name of the package
-    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Package amount
-    daily_profit = models.DecimalField(max_digits=10, decimal_places=2)  # Daily profit amount
-    weekly_withdrawal = models.CharField(max_length=50, help_text="Withdrawal frequency description")  # Weekly withdrawal limit
-    date = models.DateTimeField(auto_now_add=True)  # Automatically set the date when created
-   
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    daily_profit = models.DecimalField(max_digits=10, decimal_places=2)
+    weekly_withdrawal = models.CharField(max_length=50)
+    date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'name']  # Ensure each user has only one package with a specific name
+    
     def __str__(self):
         return f"{self.name} - {self.user.username}"
 
-    class Meta:
-        verbose_name = "Purchase Package"
-        verbose_name_plural = "Purchase Packages"
 
 
 class PasswordResetCode(models.Model):

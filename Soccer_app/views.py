@@ -72,40 +72,46 @@ def league(request):
 
 
 
-
-
 def beting_history(request):
-    # Determine the current tab
-    tab = request.GET.get('tab', 'bets')  # Default to 'bets' if no tab is specified
+    # Determine the current tab (default to 'bets' if no tab is specified)
+    tab = request.GET.get('tab', 'bets')  # Default to 'bets'
 
-    # Fetching bets, wins, and losses with ordering applied
-    bets = BetHistory.objects.filter(user=request.user).order_by('-date')
-    wins = bets.filter(profit_percentage__gt=0).order_by('-date')
-    losses = bets.filter(profit_percentage__lte=0).order_by('-date')
+    # Fetching all bets for the logged-in user, ordered by the placement date
+    bets = BetHistory.objects.filter(user=request.user).order_by('-placed_at')
+    
+    # Filter bets based on status
+    playing_bets = bets.filter(status='playing').order_by('-placed_at')
+    won_bets = bets.filter(status='won').order_by('-placed_at')
+    lost_bets = bets.filter(status='lost').order_by('-placed_at')
 
-    # Pagination
-    bets_paginator = Paginator(bets, 3)
-    wins_paginator = Paginator(wins, 3)
-    losses_paginator = Paginator(losses, 3)
+    # Pagination for each status
+    playing_paginator = Paginator(playing_bets, 3)
+    won_paginator = Paginator(won_bets, 3)
+    lost_paginator = Paginator(lost_bets, 3)
 
-    # Get the page number from query parameters
+    # Get the page number from the query parameters (default to 1)
     page_number = request.GET.get('page', 1)
+
+    # Based on the selected tab, get the appropriate page
     if tab == 'wins':
-        page = wins_paginator.get_page(page_number)
+        page = won_paginator.get_page(page_number)
     elif tab == 'losses':
-        page = losses_paginator.get_page(page_number)
-    else:
-        page = bets_paginator.get_page(page_number)
+        page = lost_paginator.get_page(page_number)
+    else:  # Default to 'bets'
+        page = playing_paginator.get_page(page_number)
 
     context = {
-        'bets': bets_paginator.get_page(page_number),
-        'wins': wins_paginator.get_page(page_number),
-        'losses': losses_paginator.get_page(page_number),
-        'current_tab': tab,  # Pass the current tab to the context
-        'page': page,        # Pass the current page data
+        'playing_bets': playing_paginator.get_page(page_number),
+        'won_bets': won_paginator.get_page(page_number),
+        'lost_bets': lost_paginator.get_page(page_number),
+        'current_tab': tab,  # Pass the current tab to the template
+        'page': page,        # Pass the current page object for pagination
     }
 
     return render(request, 'home/beting_history.html', context)
+
+
+
 
 
 def custom_404_view(request, exception):
