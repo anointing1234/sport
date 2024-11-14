@@ -45,7 +45,7 @@ def generate_unique_referral_code(length=6):
 class Account(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(verbose_name="phone number", max_length=15, unique=True)
     email = models.EmailField(verbose_name="email", max_length=100, unique=True)
-    username = models.CharField(max_length=100, unique=True)
+    username = models.CharField(max_length=100)
     fullname = models.CharField(max_length=200)
     referral_code = models.CharField(max_length=6, unique=True, editable=False)
     date_joined = models.DateTimeField(verbose_name="date joined", auto_now_add=True)
@@ -58,7 +58,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
    
     USERNAME_FIELD = 'phone'
-    REQUIRED_FIELDS = ['username', 'email']
+    REQUIRED_FIELDS = ['email']
     
     objects = AccountManager()
 
