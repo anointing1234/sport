@@ -29,11 +29,11 @@ environ.Env.read_env(os.path.join(BASE_DIR,'file.env'))
 SECRET_KEY = 'django-insecure-*^x+y-u8wp0@mkj35p5g-5ge7ugiu)+5_&4ll6*#^j-cae(5#1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # DEBUG_PROPAGATE_EXCEPTIONS = True
-# CSRF_TRUSTED_ORIGINS = ["https://soccer247gv.com"]
-# ALLOWED_HOSTS = ["soccer247gv.com"]
-ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ["https://soccer247gv.com"]
+ALLOWED_HOSTS = ["soccer247gv.com"]
+# ALLOWED_HOSTS = ['*']
 
 #Application definition
 AUTH_USER_MODEL = 'accounts.Account'
@@ -86,16 +86,38 @@ WSGI_APPLICATION = 'Soccer_bet.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',  # Assuming you want the SQLite database file to be in the base directory of your project
+#     }
+# }
+
+
+
 DATABASES = {
     'default': {
-        'ENGINE':'django.db.backends.postgresql',
-        'NAME':'soccer234',
-        'USER':'postgres',
-        'PASSWORD':'1234',
-        'HOST':'localhost',
-        
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DB_NAME'),  
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE':'django.db.backends.postgresql',
+#         'NAME':'soccer234',
+#         'USER':'postgres',
+#         'PASSWORD':'1234',
+#         'HOST':'localhost',
+        
+#     }
+# }
 
 
 # Password validation

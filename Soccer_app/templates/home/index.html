@@ -40,7 +40,7 @@
 
       <div class="row mx-3">
         <div class="container-fluid d-flex justify-content-center mb-4 mt-5 border-bottom border-danger">
-          <h5 class="fw-bold text-danger">🔥 Hot Games</h5>
+          <h5 class="fw-bold text-light">Today Games</h5>
         </div>
         <div class="row justify-content-center align-items-center mb-1">
           {% for game in hot_games %}
@@ -147,9 +147,7 @@
       <div class="row">
         <div class="col-md-12 text-center">
           <h3 class="text-light mb-3 border-bottom me-3 border-white border-1">About Us</h3>
-          <p class="text-light mt-3">Welcome to SOCCER247GV.COM, where betting meets consistent returns. We’re a betting platform focused on providing users with a reliable, straightforward way to earn daily. By staking a fixed amount with us, you’ll enjoy a guaranteed 3% return on your stake each day.
-
-            What sets us apart? Simplicity and trust. You can accumulate your daily returns and, once a week, request a hassle-free withdrawal directly to your bank account. It’s that easy.</p>
+          <p class="text-light mt-3">Welcome to SOCCER247GV.COM, where betting meets consistent returns. We’re a betting platform focused on providing users with a reliable, straightforward way to earn daily. By staking a fixed amount with us, you’ll enjoy a guaranteed 3% return on your stake each day. What sets us apart? Simplicity and trust. You can accumulate your daily returns and, once a week, request a hassle-free withdrawal directly to your bank account. It’s that easy.</p>
         </div>
       </div>
     </div>
@@ -236,7 +234,7 @@
           clearInterval(pollingInterval)
           displayAlert('error', 'An error occurred while checking bet status.')
         }
-      }, 5000) // Poll every 5 seconds
+      }, 5000)
     }
     
     // Function to place a bet

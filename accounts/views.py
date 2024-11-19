@@ -806,10 +806,10 @@ def place_bet(request):
                 return JsonResponse({'error': 'Betting is only allowed on the match day.'}, status=400)
 
             # Ensure the current time is before the match start time
-            if current_time >= match_start_time:
-                logger.warning("Betting attempt before match start time.")
-                logger.warning(f"current time: {current_time}, match time: {match_start_time}")
-                return JsonResponse({'error': 'Bet has not started yet. Please wait for the match to start.'}, status=400)
+            # if current_time >= match_start_time:
+            #     logger.warning("Betting attempt before match start time.")
+            #     logger.warning(f"current time: {current_time}, match time: {match_start_time}")
+            #     return JsonResponse({'error': 'Bet has not started yet. Please wait for the match to start.'}, status=400)
 
             # Check if the game status is "playing"
             if bet_status != "playing":
@@ -818,9 +818,9 @@ def place_bet(request):
 
             # Limit bets to 3 per day
             bet_count = BetHistory.objects.filter(user=user, placed_at__date=current_date).count()
-            if bet_count >= 3:
+            if bet_count >= 1:
                 logger.warning(f"User {user.id} exceeded daily bet limit.")
-                return JsonResponse({'error': 'Betting exceeded: You can only bet 3 times a day.'}, status=400)
+                return JsonResponse({'error': 'Betting exceeded: You can only bet once a day.'}, status=400)
 
             # Check for purchased package and user balance
             try:
