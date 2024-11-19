@@ -1,109 +1,73 @@
 {% extends 'core/base/base.html' %}
 {% load static %}
 {% block contents %}
-  <style>
-    .nav-tabs .nav-link {
-      color: white;
-    }
-    
-    .nav-tabs .nav-link.active {
-      color: #000;
-      background-color: #f8f9fa;
-    }
-  </style>
-
-  <div class="page-inner mb-5 pb-5">
-    <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
-      <div>
-        <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3"><i class="fas fa-futbol"></i> Football</h6>
-      </div>
-    </div>
-
-    <div class="container-fluid p-0 col-12 mb-5 py-2">
-      <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-indicators">
-          {% for slide in slides %}
-            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+  <div class="page-inner mb-5">
+    <div class="table-responsive mt-4 mb-5 pb-5">
+      <h5 class="border-bottom border-1 border-white py-2 me-2">Handicap</h5>
+      <table class="table table-bordered table-hover text-center" style="border-collapse: separate; border-spacing: 10px; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);">
+        <thead class="table-dark">
+          <tr style="font-size: x-small;">
+            <th scope="col" class="p-1">Fixed score</th>
+            <th scope="col" class="p-1">Home</th>
+            <th scope="col" class="p-1">Draw</th>
+            <th scope="col" class="p-1">Away</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for game in predictions %}
+            <tr>
+              <td class="p-1">{{ game.fixed_score }}</td>
+              <td class="p-1">
+                {% if game.prediction == 'home' %}
+                  <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
+                {% else %}
+                  1.3
+                {% endif %}
+              </td>
+              <td class="p-1">
+                {% if game.prediction == 'draw' %}
+                  <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
+                {% else %}
+                  1.7
+                {% endif %}
+              </td>
+              <td class="p-1">
+                {% if game.prediction == 'away' %}
+                  <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
+                {% else %}
+                  2.3
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center">No predictions available</td>
+            </tr>
           {% endfor %}
-        </div>
-
-        <div class="carousel-inner text-center">
-          {% for slide in slides %}
-            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-              <div style="height: 200px;" class="img-container mx-auto">
-                <img src="{{ slide.image.url }}" class="d-block" alt="Slide Image" />
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
+        </tbody>
+      </table>
     </div>
 
-    <div class="container-fluid mb-5 pb-5 p-0">
-      <ul class="nav nav-tabs" id="matchTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="soccer-matches-tab" data-bs-toggle="tab" data-bs-target="#soccer-matches" type="button" role="tab" aria-controls="soccer-matches" aria-selected="true">Soccer</button>
-        </li>
-      </ul>
-
-      <div class="tab-content mt-3" id="matchTabsContent">
-        <!-- Soccer Matches Tab Pane -->
-        <div class="tab-pane fade show active" id="soccer-matches" role="tabpanel" aria-labelledby="soccer-matches-tab">
-          <div class="card">
-            <div class="card-body">
-              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-hover table-striped table-bordered" style="background-color: white;">
-                  <thead class="table-primary text-center text-uppercase small">
-                    <tr>
-                      <th>Match</th>
-                      <th>Date</th>
-                      <th>Time</th>
-                      <th>Fixed Score</th>
-                      <th>Profit</th>
-                      <th>Bet</th>
-                    </tr>
-                  </thead>
-                  <tbody class="small">
-                    {% for match in football_matches %}
-                      {% if match.match_type == 'soccer' %}
-                        <tr class="{% cycle 'table-success' 'table-warning' 'table-info' %}">
-                          <td>{{ match.home_team }} vs {{ match.away_team }}</td>
-                          <td>{{ match.start_time|date:'Y-m-d' }}</td>
-                          <td>{{ match.start_time|time:'H:i' }}</td>
-                          <td>{{ match.fixed_score }}</td>
-                          <td>{{ match.profit_percentage|floatformat:'0' }}%</td>
-                          <td>
-                            <button class="btn btn-warning btn-sm w-100" onclick="placeBet(
-                              this, 
-                              '{{ match.home_team }} vs {{ match.away_team }}', 
-                              '{{ match.start_time|date:'Y-m-d' }}', 
-                              '{{ match.start_time|time:'H:i' }}',
-                              '{{ match.fixed_score }}', 
-                              '{{ match.profit_percentage }}',
-                              '{{ match.status }}'
-                            )"><b>Bet now</b></button>
-                          </td>
-                        </tr>
-                      {% endif %}
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Buttons outside the table -->
+    {% for game in predictions %}
+      <div class="text-center my-3">
+        <button class="btn btn-warning w-30" onclick="placeBet(
+              this,
+              '{{ game.home_team }} vs {{ game.away_team }}',
+              '{{ game.start_date|date:'Y-m-d' }}', 
+              '{{ game.start_time|time:'H:i' }}', 
+              '{{ game.fixed_score }}', 
+              '{{ game.profit_percentage }}',
+              '{{ game.status }}'
+          )"><strong>Bet Now</strong></button>
       </div>
-    </div>
-
-
-
-
-    
+    {% empty %}
+      <div class="text-center my-3">No predictions available</div>
+    {% endfor %}
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <!-- Include SweetAlert2 -->
   <script>
     const placeBetUrl = "{% url 'place_bet' %}"
@@ -183,7 +147,7 @@
           clearInterval(pollingInterval)
           displayAlert('error', 'An error occurred while checking bet status.')
         }
-      }, 5000) // Poll every 5 seconds
+      }, 5000)
     }
     
     // Function to place a bet

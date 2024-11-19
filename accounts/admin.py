@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Account, UsersReferralPercentage, UsersBankDetail, UserBalance,HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest, WithdrawalRequest,AdminBankAccount,PurchasePackage,soccer_slider,ReferralBonus,leagues_slider,WithdrawalTimeAndDate
+from .models import Account, UsersReferralPercentage, UsersBankDetail, UserBalance,HotGame,ShowcaseSlider,PremierLeagueGame,Package,FootballMatch,Match,BetHistory,DepositRequest, WithdrawalRequest,AdminBankAccount,PurchasePackage,soccer_slider,ReferralBonus,leagues_slider,WithdrawalTimeAndDate,Prediction
 from django.utils.html import format_html
 from django.urls import reverse
 
@@ -266,6 +266,7 @@ class WithdrawalTimeAndDateAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ReferralBonus)
+admin.site.register(Prediction)
 admin.site.register(PurchasePackage)
 admin.site.register(AdminBankAccount)
 admin.site.register(DepositRequest, DepositRequestAdmin)

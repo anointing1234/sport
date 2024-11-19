@@ -7,11 +7,12 @@ import requests
 from decimal import Decimal, InvalidOperation
 import logging
 import json
+from django.utils.timezone import now
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate,logout as auth_logout,login as auth_login
-from .models import AdminBankAccount,DepositRequest, UserBalance, PurchasePackage,Package,BetHistory,PasswordResetCode,Account,ReferralBonus,UsersReferralPercentage,WithdrawalRequest,WithdrawalTimeAndDate,HotGame,PremierLeagueGame,FootballMatch,Match
+from .models import AdminBankAccount,DepositRequest, UserBalance, PurchasePackage,Package,BetHistory,PasswordResetCode,Account,ReferralBonus,UsersReferralPercentage,WithdrawalRequest,WithdrawalTimeAndDate,HotGame,PremierLeagueGame,FootballMatch,Match,Prediction
 from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
@@ -649,38 +650,62 @@ def update_game_status(request, game_type, game_id, action):
         game.status = 'won'
         messages.success(request, f"Game '{game}' marked as Won!")
         
-        # Determine the match identifier for the BetHistory model
+        # Determine the home_team and away_team for both BetHistory and Prediction models
         if isinstance(game, FootballMatch):
-            match_identifier = f"{game.home_team} vs {game.away_team}"
+            home_team = game.home_team
+            away_team = game.away_team
         elif isinstance(game, HotGame):
-            match_identifier = f"{game.home_team} vs {game.away_team}"
+            home_team = game.home_team
+            away_team = game.away_team
         elif isinstance(game, PremierLeagueGame):
-            match_identifier = game.match  # PremierLeagueGame has 'match' field
+            home_team = game.home_team  # Assuming 'home_team' exists for PremierLeagueGame
+            away_team = game.away_team  # Assuming 'away_team' exists for PremierLeagueGame
         elif isinstance(game, Match):
-            match_identifier = game.match_name  # Match has 'match_name' field
+            home_team = game.home_team  # Assuming 'home_team' exists for Match
+            away_team = game.away_team  # Assuming 'away_team' exists for Match
         
         # Update all bets associated with this match that are 'playing' to 'won'
-        bet_history_updated_count = BetHistory.objects.filter(match=match_identifier, status='playing').update(status='won')
-        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'won' for match: {match_identifier}")
+        bet_history_updated_count = BetHistory.objects.filter(
+            match=f"{home_team} vs {away_team}", status='playing'
+        ).update(status='won')
+        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'won' for match: {home_team} vs {away_team}")
         
+        # Update all predictions associated with this match that are 'playing' to 'won'
+        prediction_updated_count = Prediction.objects.filter(
+            home_team=home_team, away_team=away_team, status='playing'
+        ).update(status='won')
+        logger.warning(f"Updated {prediction_updated_count} prediction(s) to 'won' for match: {home_team} vs {away_team}")
+
     elif action == 'lost':
         game.status = 'lost'
         messages.error(request, f"Game '{game}' marked as Lost!")
         
-        # Determine the match identifier for the BetHistory model
+        # Determine the home_team and away_team for both BetHistory and Prediction models
         if isinstance(game, FootballMatch):
-            match_identifier = f"{game.home_team} vs {game.away_team}"
+            home_team = game.home_team
+            away_team = game.away_team
         elif isinstance(game, HotGame):
-            match_identifier = f"{game.home_team} vs {game.away_team}"
+            home_team = game.home_team
+            away_team = game.away_team
         elif isinstance(game, PremierLeagueGame):
-            match_identifier = game.match  # PremierLeagueGame has 'match' field
+            home_team = game.home_team  # Assuming 'home_team' exists for PremierLeagueGame
+            away_team = game.away_team  # Assuming 'away_team' exists for PremierLeagueGame
         elif isinstance(game, Match):
-            match_identifier = game.match_name  # Match has 'match_name' field
+            home_team = game.home_team  # Assuming 'home_team' exists for Match
+            away_team = game.away_team  # Assuming 'away_team' exists for Match
         
         # Update all bets associated with this match that are 'playing' to 'lost'
-        bet_history_updated_count = BetHistory.objects.filter(match=match_identifier, status='playing').update(status='lost')
-        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'loss' for match: {match_identifier}")
+        bet_history_updated_count = BetHistory.objects.filter(
+            match=f"{home_team} vs {away_team}", status='playing'
+        ).update(status='lost')
+        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'lost' for match: {home_team} vs {away_team}")
         
+        # Update all predictions associated with this match that are 'playing' to 'lost'
+        prediction_updated_count = Prediction.objects.filter(
+            home_team=home_team, away_team=away_team, status='playing'
+        ).update(status='lost')
+        logger.warning(f"Updated {prediction_updated_count} prediction(s) to 'lost' for match: {home_team} vs {away_team}")
+
     else:
         messages.error(request, "Invalid action.")
         return redirect('admin:index')  # Redirect to admin if action is invalid
@@ -699,7 +724,6 @@ def update_game_status(request, game_type, game_id, action):
         return redirect('admin:accounts_match_changelist')  # Replace with correct URL name for matches
 
     return redirect('admin:index')
-
 
 
 
@@ -840,7 +864,12 @@ def place_bet(request):
 
                 purchased_package_amount = purchased_package.amount 
 
-                # Save bet in BetHistory
+                existing_bet = BetHistory.objects.filter(user=user, match=match, date=match_start_date).exists()
+                if existing_bet:
+                    logger.warning(f"User {user.id} attempted to place a duplicate bet on match: {match} for date: {match_start_date}.")
+                    return JsonResponse({'error': 'Bet already placed on this match.'}, status=400)
+             
+                    # Save bet in BetHistory
                 bet_history = BetHistory.objects.create(
                     user=request.user,
                     match=match,
@@ -875,6 +904,77 @@ def place_bet(request):
     logger.warning("Invalid request method for place_bet endpoint.")
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
+
+
+def predict_bet(request):
+    if request.method == 'POST':
+        try:
+            # Parse the JSON body
+            data = json.loads(request.body)
+            print("Received data:", data)  # Debugging
+
+            # Validate required fields
+            required_fields = ['home_team', 'away_team', 'start_date', 'start_time', 'fixed_score', 'profit_percentage', 'status', 'prediction']
+            for field in required_fields:
+                if field not in data or not data[field]:
+                    return JsonResponse({'success': False, 'error': f'Missing or invalid field: {field}'}, status=400)
+
+            user = request.user
+
+            # Check if the user has already placed a bet for the current day
+            today = now().date()
+            bet_exists_today = BetHistory.objects.filter(user=user, placed_at__date=today).exists()
+            if bet_exists_today:
+                return JsonResponse({'success': False, 'error': 'You can only place one bet per day.'}, status=400)
+
+            # Ensure the bet is placed on the day of the match
+            bet_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()  # Convert the 'start_date' to a date object
+            if bet_date != today:
+                return JsonResponse({'success': False, 'error': 'Can\'t bet on this game today, can only bet on the day of the match.'}, status=400)
+
+            # Check if the prediction already exists
+            existing_prediction = Prediction.objects.filter(
+                home_team=data['home_team'],
+                away_team=data['away_team'],
+                start_date=data['start_date'],
+                start_time=data['start_time'],
+                fixed_score=data['fixed_score'],
+                profit_percentage=data['profit_percentage'],
+                status=data['status'],
+                prediction=data['prediction'],
+            ).exists()
+
+            if existing_prediction:
+                # If prediction exists, redirect to the predictions page without inserting
+                return JsonResponse({'success': True, 'redirect_url': '/accounts/bet_prediction'})
+
+            # Create a new Prediction instance
+            Prediction.objects.create(
+                home_team=data['home_team'],
+                away_team=data['away_team'],
+                start_date=data['start_date'],
+                start_time=data['start_time'],
+                fixed_score=data['fixed_score'],
+                profit_percentage=data['profit_percentage'],
+                status=data['status'],
+                prediction=data['prediction'],
+            )
+
+            # Respond with success
+            return JsonResponse({'success': True, 'redirect_url': '/accounts/bet_prediction'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON payload'}, status=400)
+        except Exception as e:
+            print("Error:", str(e))  # Log the error for debugging
+            return JsonResponse({'success': False, 'error': 'An error occurred'}, status=500)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+
+
+def bet_prediction(request):
+    predictions = Prediction.objects.all()
+    return render(request,'home/bet_prediction.html',{'predictions': predictions})
 
     
 def custom_404_view(request, exception):

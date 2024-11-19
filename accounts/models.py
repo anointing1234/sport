@@ -305,20 +305,25 @@ class WithdrawalTimeAndDate(models.Model):
 
 
 
-
 class HotGame(models.Model):
     STATUS_CHOICES = [
         ('playing', 'Playing'),
         ('won', 'Won'),
         ('lost', 'Lost'),
     ]
+    CATEGORY_CHOICES = [
+        ('home', 'Home'),
+        ('away', 'Away'),
+        ('draw', 'Draw'),
+    ]
 
     home_team = models.CharField(max_length=100)
     away_team = models.CharField(max_length=100)
-    fixed_score = models.CharField(max_length=10)  # e.g., "9:0" or "10:4"
+    fixed_score = models.CharField(max_length=10)
     start_time = models.DateTimeField()
-    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2)  # e.g., 5.00 for 5%
+    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')
+    prediction = models.CharField(max_length=10,choices=CATEGORY_CHOICES,default='home')  # New field
 
     def __str__(self):
         return f"{self.home_team} vs {self.away_team}"
@@ -326,6 +331,10 @@ class HotGame(models.Model):
     def get_start_time_local(self):
         # Convert start time to the local timezone (WAT)
         return self.start_time.astimezone(timezone.get_current_timezone())
+
+
+
+
 
 
 class PremierLeagueGame(models.Model):
@@ -406,3 +415,18 @@ class Match(models.Model):
     def get_start_time_local(self):
         # Convert start time to the local timezone (WAT)
         return self.start_time.astimezone(timezone.get_current_timezone())
+
+
+
+class Prediction(models.Model):
+    home_team = models.CharField(max_length=100)
+    away_team = models.CharField(max_length=100)
+    start_date = models.DateField()
+    start_time = models.TimeField()
+    fixed_score = models.CharField(max_length=20)
+    profit_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    status = models.CharField(max_length=20)
+    prediction = models.TextField()
+
+    def __str__(self):
+        return f"{self.home_team} vs {self.away_team}"
