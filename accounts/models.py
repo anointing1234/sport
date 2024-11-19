@@ -26,13 +26,18 @@ class AccountManager(BaseUserManager):
         user.set_password(password)  # Set the password using Django's hashing method
         user.save(using=self._db)
         return user
-
-    def create_superuser(self, phone, email, username, password=None, **extra_fields):
-        extra_fields.setdefault('is_active', True)  # Ensure the superuser is active
+    
+    def create_superuser(self, phone, email, username=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('is_admin', True)
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(phone, email, username, password, **extra_fields)
+
+        if not username:
+            username = f"admin_{email.split('@')[0]}"  # Generate a default username
+
+        return self.create_user(phone=phone, email=email, username=username, password=password, **extra_fields)
+
 
 def generate_unique_referral_code(length=6):
     """Generate a unique random alphanumeric referral code."""
