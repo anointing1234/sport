@@ -140,7 +140,7 @@
             button.disabled = false
             clearInterval(pollingInterval)
           } else if (data.status === 'playing') {
-            button.innerHTML = 'Bet Placed, Playing...'
+            button.innerHTML = 'Bet Placed'
           }
         } catch (error) {
           console.error('Error checking bet status:', error)
