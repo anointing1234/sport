@@ -674,6 +674,9 @@ def update_game_status(request, game_type, game_id, action):
                 user_balance.main_balance = F('main_balance') + bet.bet_amount
                 user_balance.save(update_fields=['main_balance'])
                 
+                user_balance.total_profits = F('total_profits') + bet.bet_amount
+                user_balance.save(update_fields=['total_profits'])
+                
                 # Mark the bet as won
                 bet.status = 'won'
                 bet.save(update_fields=['status'])
