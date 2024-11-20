@@ -59,7 +59,7 @@
               '{{ game.fixed_score }}', 
               '{{ game.profit_percentage }}',
               '{{ game.status }}'
-          )"><strong>Bet Now</strong></button>
+          )"><strong>Bet</strong></button>
       </div>
     {% empty %}
       <div class="text-center my-3">No predictions available</div>
@@ -147,7 +147,7 @@
           clearInterval(pollingInterval)
           displayAlert('error', 'An error occurred while checking bet status.')
         }
-      }, 5000)
+      }, 10000)
     }
     
     // Function to place a bet

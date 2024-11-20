@@ -203,7 +203,8 @@ class BetHistory(models.Model):
     bet_amount = models.DecimalField(max_digits=10, decimal_places=2)  # e.g., 100.00
     placed_at = models.DateTimeField(auto_now_add=True)  # Automatically set the date/time when the bet is placed
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')  # Status of the bet
-
+    processed = models.BooleanField(default=False)
+    
     def __str__(self):
         return f"{self.match} on {self.date} at {self.time} (Status: {self.status}, Placed at: {self.placed_at})"
    

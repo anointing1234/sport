@@ -726,16 +726,17 @@ def update_game_status(request, game_type, game_id, action):
     return redirect('admin:index')
 
 
-
 from django.db import transaction
 from django.db.models import F
-
-
+from django.http import JsonResponse
 
 def check_bet_status(request, bet_id):
     try:
         # Retrieve the bet history record for the given bet ID and ensure it belongs to the current user
         bet_history = BetHistory.objects.get(id=bet_id, user=request.user)
+        # Check if the bet has already been processed
+        if bet_history.processed:
+            return JsonResponse({'status': 'already_processed', 'profit': f"{bet_history.bet_amount:,.2f}"})
         game_status = bet_history.status
 
         if game_status == "won":
@@ -751,16 +752,20 @@ def check_bet_status(request, bet_id):
                 if not purchased_package:
                     return JsonResponse({'error': 'Purchased package not found'}, status=404)
 
+                
                 # Calculate profit based on the user's package amount and the match profit percentage
                 package_amount = purchased_package.amount
                 profit = (package_amount * bet_history.profit_percentage) / 100
                 
-                bet_history.bet_amount = profit  # Set bet_amount to just the profit
+                # Update bet_history with the profit
+                bet_history.bet_amount = profit 
+                bet_history.processed = True# Set bet_amount to just the profit
                 bet_history.save(update_fields=['bet_amount'])
                 
                 # Update the user's main balance with the calculated profit
-                user_balance.main_balance = F('main_balance') + profit
+                user_balance.main_balance += profit
                 user_balance.save(update_fields=['main_balance'])
+
 
             return JsonResponse({
                 'status': 'won',
@@ -780,12 +785,10 @@ def check_bet_status(request, bet_id):
     except PurchasePackage.DoesNotExist:
         return JsonResponse({'error': 'Purchased package not found'}, status=404)
     except UserBalance.DoesNotExist:
-        return JsonResponse({'error': 'User balance not found'}, status=404)
+        return JsonResponse({'error': 'User  balance not found'}, status=404)
     except Exception as e:
         # General exception handling
         return JsonResponse({'error': str(e)}, status=500)
-
-
 
 
 def place_bet(request):
@@ -863,7 +866,11 @@ def place_bet(request):
                     return JsonResponse({'error': 'Please purchase a package before placing a bet.'}, status=400)
 
                 purchased_package_amount = purchased_package.amount 
+                
+                bet_amount = (purchased_package_amount * profit_percentage) / 100
 
+                
+                
                 existing_bet = BetHistory.objects.filter(user=user, match=match, date=match_start_date).exists()
                 if existing_bet:
                     logger.warning(f"User {user.id} attempted to place a duplicate bet on match: {match} for date: {match_start_date}.")
@@ -877,7 +884,7 @@ def place_bet(request):
                     time=timezone.now().time(),  # Set the time to the current time
                     fixed_score=fixed_score,
                     profit_percentage=profit_percentage,
-                    bet_amount=purchased_package_amount,
+                    bet_amount=bet_amount,
                     status='playing'  # Default status on bet placement
                 )
 
@@ -905,7 +912,6 @@ def place_bet(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
-
 def predict_bet(request):
     if request.method == 'POST':
         try:
@@ -914,21 +920,30 @@ def predict_bet(request):
             print("Received data:", data)  # Debugging
 
             # Validate required fields
-            required_fields = ['home_team', 'away_team', 'start_date', 'start_time', 'fixed_score', 'profit_percentage', 'status', 'prediction']
+            required_fields = [
+                'home_team', 'away_team', 'start_date', 'start_time',
+                'fixed_score', 'profit_percentage', 'status', 'prediction'
+            ]
             for field in required_fields:
                 if field not in data or not data[field]:
                     return JsonResponse({'success': False, 'error': f'Missing or invalid field: {field}'}, status=400)
 
             user = request.user
+            today = now().date()
+
+            # Delete old games with status 'won' or 'lost' and not today's game
+            Prediction.objects.filter(
+                start_date__lt=today,
+                status__in=['won', 'lost']
+            ).delete()
 
             # Check if the user has already placed a bet for the current day
-            today = now().date()
             bet_exists_today = BetHistory.objects.filter(user=user, placed_at__date=today).exists()
             if bet_exists_today:
                 return JsonResponse({'success': False, 'error': 'You can only place one bet per day.'}, status=400)
 
             # Ensure the bet is placed on the day of the match
-            bet_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()  # Convert the 'start_date' to a date object
+            bet_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
             if bet_date != today:
                 return JsonResponse({'success': False, 'error': 'Can\'t bet on this game today, can only bet on the day of the match.'}, status=400)
 
@@ -970,6 +985,9 @@ def predict_bet(request):
             return JsonResponse({'success': False, 'error': 'An error occurred'}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+
+
+
 
 
 def bet_prediction(request):
