@@ -29,6 +29,9 @@ import pytz
 from datetime import datetime, timedelta
 from pytz import timezone as pytz_timezone
 import logging
+from django.db import transaction
+from django.db.models import F,Sum
+
 
 logger = logging.getLogger(__name__)
 
@@ -630,7 +633,6 @@ class UpdateUserDetailsView(View):
 
 
 
-
 def update_game_status(request, game_type, game_id, action):
     # Determine which game model to update based on the game_type
     if game_type == 'hot':
@@ -649,61 +651,61 @@ def update_game_status(request, game_type, game_id, action):
     if action == 'won':
         game.status = 'won'
         messages.success(request, f"Game '{game}' marked as Won!")
-        
+
         # Determine the home_team and away_team for both BetHistory and Prediction models
-        if isinstance(game, FootballMatch):
-            home_team = game.home_team
-            away_team = game.away_team
-        elif isinstance(game, HotGame):
-            home_team = game.home_team
-            away_team = game.away_team
-        elif isinstance(game, PremierLeagueGame):
-            home_team = game.home_team  # Assuming 'home_team' exists for PremierLeagueGame
-            away_team = game.away_team  # Assuming 'away_team' exists for PremierLeagueGame
-        elif isinstance(game, Match):
-            home_team = game.home_team  # Assuming 'home_team' exists for Match
-            away_team = game.away_team  # Assuming 'away_team' exists for Match
+        home_team = getattr(game, 'home_team', None)
+        away_team = getattr(game, 'away_team', None)
         
+        if not home_team or not away_team:
+            messages.error(request, "Game does not have valid teams.")
+            return redirect('admin:index')
+
         # Update all bets associated with this match that are 'playing' to 'won'
-        bet_history_updated_count = BetHistory.objects.filter(
-            match=f"{home_team} vs {away_team}", status='playing'
-        ).update(status='won')
-        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'won' for match: {home_team} vs {away_team}")
-        
-        # Update all predictions associated with this match that are 'playing' to 'won'
-        prediction_updated_count = Prediction.objects.filter(
-            home_team=home_team, away_team=away_team, status='playing'
-        ).update(status='won')
+        with transaction.atomic():
+            bet_histories = BetHistory.objects.select_for_update().filter(
+                match=f"{home_team} vs {away_team}", status='playing'
+            )
+
+            # Update user balances and bet statuses
+            for bet in bet_histories:
+                user_balance = UserBalance.objects.select_for_update().get(user=bet.user)
+                
+                # Add bet_amount to user's main_balance
+                user_balance.main_balance = F('main_balance') + bet.bet_amount
+                user_balance.save(update_fields=['main_balance'])
+                
+                # Mark the bet as won
+                bet.status = 'won'
+                bet.save(update_fields=['status'])
+
+            prediction_updated_count = Prediction.objects.filter(
+                home_team=home_team, away_team=away_team, status='playing'
+            ).update(status='won')
+            
+        logger.warning(f"Updated {bet_histories.count()} bet(s) to 'won' for match: {home_team} vs {away_team}")
         logger.warning(f"Updated {prediction_updated_count} prediction(s) to 'won' for match: {home_team} vs {away_team}")
 
     elif action == 'lost':
         game.status = 'lost'
         messages.error(request, f"Game '{game}' marked as Lost!")
-        
+
         # Determine the home_team and away_team for both BetHistory and Prediction models
-        if isinstance(game, FootballMatch):
-            home_team = game.home_team
-            away_team = game.away_team
-        elif isinstance(game, HotGame):
-            home_team = game.home_team
-            away_team = game.away_team
-        elif isinstance(game, PremierLeagueGame):
-            home_team = game.home_team  # Assuming 'home_team' exists for PremierLeagueGame
-            away_team = game.away_team  # Assuming 'away_team' exists for PremierLeagueGame
-        elif isinstance(game, Match):
-            home_team = game.home_team  # Assuming 'home_team' exists for Match
-            away_team = game.away_team  # Assuming 'away_team' exists for Match
+        home_team = getattr(game, 'home_team', None)
+        away_team = getattr(game, 'away_team', None)
         
+        if not home_team or not away_team:
+            messages.error(request, "Game does not have valid teams.")
+            return redirect('admin:index')
+
         # Update all bets associated with this match that are 'playing' to 'lost'
         bet_history_updated_count = BetHistory.objects.filter(
             match=f"{home_team} vs {away_team}", status='playing'
         ).update(status='lost')
-        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'lost' for match: {home_team} vs {away_team}")
-        
-        # Update all predictions associated with this match that are 'playing' to 'lost'
         prediction_updated_count = Prediction.objects.filter(
             home_team=home_team, away_team=away_team, status='playing'
         ).update(status='lost')
+
+        logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'lost' for match: {home_team} vs {away_team}")
         logger.warning(f"Updated {prediction_updated_count} prediction(s) to 'lost' for match: {home_team} vs {away_team}")
 
     else:
@@ -717,25 +719,118 @@ def update_game_status(request, game_type, game_id, action):
     if game_type == 'hot':
         return redirect('admin:accounts_hotgame_changelist')
     elif game_type == 'football_match':
-        return redirect('admin:accounts_footballmatch_changelist')  # Replace with correct URL name for football matches
+        return redirect('admin:accounts_footballmatch_changelist')
     elif game_type == 'premier_league':
-        return redirect('admin:accounts_premierleaguegame_changelist')  # Replace with correct URL name for premier league games
+        return redirect('admin:accounts_premierleaguegame_changelist')
     elif game_type == 'match':
-        return redirect('admin:accounts_match_changelist')  # Replace with correct URL name for matches
+        return redirect('admin:accounts_match_changelist')
 
     return redirect('admin:index')
 
 
-from django.db import transaction
-from django.db.models import F
-from django.http import JsonResponse
+# def update_game_status(request, game_type, game_id, action):
+#     # Determine which game model to update based on the game_type
+#     if game_type == 'hot':
+#         game = get_object_or_404(HotGame, id=game_id)
+#     elif game_type == 'football_match':
+#         game = get_object_or_404(FootballMatch, id=game_id)
+#     elif game_type == 'premier_league':
+#         game = get_object_or_404(PremierLeagueGame, id=game_id)
+#     elif game_type == 'match':
+#         game = get_object_or_404(Match, id=game_id)
+#     else:
+#         messages.error(request, "Invalid game type.")
+#         return redirect('admin:index')  # Redirect to admin index page if invalid game_type
+    
+#     # Perform action based on 'won' or 'lost'
+#     if action == 'won':
+#         game.status = 'won'
+#         messages.success(request, f"Game '{game}' marked as Won!")
+        
+#         # Determine the home_team and away_team for both BetHistory and Prediction models
+#         if isinstance(game, FootballMatch):
+#             home_team = game.home_team
+#             away_team = game.away_team
+#         elif isinstance(game, HotGame):
+#             home_team = game.home_team
+#             away_team = game.away_team
+#         elif isinstance(game, PremierLeagueGame):
+#             home_team = game.home_team  # Assuming 'home_team' exists for PremierLeagueGame
+#             away_team = game.away_team  # Assuming 'away_team' exists for PremierLeagueGame
+#         elif isinstance(game, Match):
+#             home_team = game.home_team  # Assuming 'home_team' exists for Match
+#             away_team = game.away_team  # Assuming 'away_team' exists for Match
+        
+#         # Update all bets associated with this match that are 'playing' to 'won'
+#         bet_history_updated_count = BetHistory.objects.filter(
+#             match=f"{home_team} vs {away_team}", status='playing'
+#         ).update(status='won')
+#         logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'won' for match: {home_team} vs {away_team}")
+        
+#         # Update all predictions associated with this match that are 'playing' to 'won'
+#         prediction_updated_count = Prediction.objects.filter(
+#             home_team=home_team, away_team=away_team, status='playing'
+#         ).update(status='won')
+#         logger.warning(f"Updated {prediction_updated_count} prediction(s) to 'won' for match: {home_team} vs {away_team}")
+        
+        
+#     elif action == 'lost':
+#         game.status = 'lost'
+#         messages.error(request, f"Game '{game}' marked as Lost!")
+        
+#         # Determine the home_team and away_team for both BetHistory and Prediction models
+#         if isinstance(game, FootballMatch):
+#             home_team = game.home_team
+#             away_team = game.away_team
+#         elif isinstance(game, HotGame):
+#             home_team = game.home_team
+#             away_team = game.away_team
+#         elif isinstance(game, PremierLeagueGame):
+#             home_team = game.home_team  # Assuming 'home_team' exists for PremierLeagueGame
+#             away_team = game.away_team  # Assuming 'away_team' exists for PremierLeagueGame
+#         elif isinstance(game, Match):
+#             home_team = game.home_team  # Assuming 'home_team' exists for Match
+#             away_team = game.away_team  # Assuming 'away_team' exists for Match
+        
+#         # Update all bets associated with this match that are 'playing' to 'lost'
+#         bet_history_updated_count = BetHistory.objects.filter(
+#             match=f"{home_team} vs {away_team}", status='playing'
+#         ).update(status='lost')
+#         logger.warning(f"Updated {bet_history_updated_count} bet(s) to 'lost' for match: {home_team} vs {away_team}")
+        
+#         # Update all predictions associated with this match that are 'playing' to 'lost'
+#         prediction_updated_count = Prediction.objects.filter(
+#             home_team=home_team, away_team=away_team, status='playing'
+#         ).update(status='lost')
+#         logger.warning(f"Updated {prediction_updated_count} prediction(s) to 'lost' for match: {home_team} vs {away_team}")
+
+#     else:
+#         messages.error(request, "Invalid action.")
+#         return redirect('admin:index')  # Redirect to admin if action is invalid
+
+#     # Save the updated game status
+#     game.save()
+
+#     # Redirect to the appropriate changelist page based on the game type
+#     if game_type == 'hot':
+#         return redirect('admin:accounts_hotgame_changelist')
+#     elif game_type == 'football_match':
+#         return redirect('admin:accounts_footballmatch_changelist')  # Replace with correct URL name for football matches
+#     elif game_type == 'premier_league':
+#         return redirect('admin:accounts_premierleaguegame_changelist')  # Replace with correct URL name for premier league games
+#     elif game_type == 'match':
+#         return redirect('admin:accounts_match_changelist')  # Replace with correct URL name for matches
+
+#     return redirect('admin:index')
+
+
 
 def check_bet_status(request, bet_id):
     try:
         # Retrieve the bet history record for the given bet ID and ensure it belongs to the current user
         bet_history = BetHistory.objects.get(id=bet_id, user=request.user)
         # Check if the bet has already been processed
-        if bet_history.processed:
+        if bet_history.processed == True:
             return JsonResponse({'status': 'already_processed', 'profit': f"{bet_history.bet_amount:,.2f}"})
         game_status = bet_history.status
 
@@ -762,9 +857,9 @@ def check_bet_status(request, bet_id):
                 bet_history.processed = True# Set bet_amount to just the profit
                 bet_history.save(update_fields=['bet_amount'])
                 
-                # Update the user's main balance with the calculated profit
-                user_balance.main_balance += profit
-                user_balance.save(update_fields=['main_balance'])
+                # # Update the user's main balance with the calculated profit
+                # user_balance.main_balance += profit
+                # user_balance.save(update_fields=['main_balance'])
 
 
             return JsonResponse({
