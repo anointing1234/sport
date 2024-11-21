@@ -79,6 +79,11 @@
                 icon: 'success',
                 title: 'Package Purchased!',
                 text: data.message
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  // Redirect to the profile page when the OK button is pressed
+                  window.location.href = "{% url 'profile' %}"
+                }
               })
             } else {
               Swal.fire({
