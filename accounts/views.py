@@ -31,7 +31,7 @@ from pytz import timezone as pytz_timezone
 import logging
 from django.db import transaction
 from django.db.models import F,Sum
-
+from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger(__name__)
 
@@ -1009,6 +1009,10 @@ def place_bet(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
+
+
+
+
 def predict_bet(request):
     if request.method == 'POST':
         try:
@@ -1044,7 +1048,7 @@ def predict_bet(request):
             if bet_date != today:
                 return JsonResponse({'success': False, 'error': 'Can\'t bet on this game today, can only bet on the day of the match.'}, status=400)
 
-            # Check if the prediction already exists
+            # Check if the prediction already exists for the user
             existing_prediction = Prediction.objects.filter(
                 home_team=data['home_team'],
                 away_team=data['away_team'],
@@ -1054,14 +1058,16 @@ def predict_bet(request):
                 profit_percentage=data['profit_percentage'],
                 status=data['status'],
                 prediction=data['prediction'],
+                user=user  # Ensure the prediction is checked per user
             ).exists()
 
             if existing_prediction:
                 # If prediction exists, redirect to the predictions page without inserting
                 return JsonResponse({'success': True, 'redirect_url': '/accounts/bet_prediction'})
 
-            # Create a new Prediction instance
+            # Create a new Prediction instance with the user
             Prediction.objects.create(
+                user=user,
                 home_team=data['home_team'],
                 away_team=data['away_team'],
                 start_date=data['start_date'],
@@ -1087,9 +1093,11 @@ def predict_bet(request):
 
 
 
+@login_required
 def bet_prediction(request):
-    predictions = Prediction.objects.all()
-    return render(request,'home/bet_prediction.html',{'predictions': predictions})
+    predictions = Prediction.objects.filter(user=request.user)
+    return render(request, 'home/bet_prediction.html', {'predictions': predictions})
+
 
     
 def custom_404_view(request, exception):

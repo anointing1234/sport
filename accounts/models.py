@@ -420,6 +420,12 @@ class Match(models.Model):
 
 
 class Prediction(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,  # Allow null temporarily
+        blank=True  # Allow blank for form validations if applicable
+    )
     home_team = models.CharField(max_length=100)
     away_team = models.CharField(max_length=100)
     start_date = models.DateField()
