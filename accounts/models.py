@@ -55,7 +55,12 @@ class Account(AbstractBaseUser, PermissionsMixin):
     referral_code = models.CharField(max_length=6, unique=True, editable=False)
     date_joined = models.DateTimeField(verbose_name="date joined", auto_now_add=True)
     referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referred')
-    referral = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals', default=None)
+    referral = models.ManyToManyField(
+        'self', 
+        symmetrical=False, 
+        related_name='referred_users', 
+        blank=True
+    )
     last_login = models.DateTimeField(verbose_name="last login", auto_now=True)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)  # Changed default to True for regular users

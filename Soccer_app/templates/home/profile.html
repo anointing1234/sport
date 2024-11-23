@@ -117,8 +117,12 @@
               <tr>
                 <td class="text-muted">My Referrals</td>
                 <td>
-                  {% if request.user.referral %}
-                    {{ request.user.referral }}
+                  {% if request.user.referral.all %}
+                    <ul>
+                      {% for referral in request.user.referral.all %}
+                        <li style="list-style: none;">{{ referral }}</li> <!-- Adjust this to the field you'd like to display -->
+                      {% endfor %}
+                    </ul>
                   {% else %}
                     <div class="alert alert-warning mb-0" role="alert">No referrals</div>
                   {% endif %}

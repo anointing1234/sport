@@ -1,51 +1,62 @@
 {% extends 'core/base/base.html' %}
 {% load static %}
 {% block contents %}
-  <div class="page-inner mb-5">
-    <div class="table-responsive mt-4 mb-5 pb-5">
+  <style>
+    th {
+      width: 20px;
+      height: 20px;
+      font-size: 5px;
+    }
+  </style>
+  <div class="container-fluid page-inner mb-5">
+    <div class="row">
       <h5 class="border-bottom border-1 border-white py-2 me-2">Today's Fixed match prediction</h5>
-      <table class="table table-bordered table-hover text-center" style="border-collapse: separate; border-spacing: 10px; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);">
-        <thead class="table-dark">
-          <tr style="font-size: x-small;">
-            <th scope="col" class="p-1">Fixed score</th>
-            <th scope="col" class="p-1">Home</th>
-            <th scope="col" class="p-1">Draw</th>
-            <th scope="col" class="p-1">Away</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for game in predictions %}
-            <tr>
-              <td class="p-1">{{ game.fixed_score }}</td>
-              <td class="p-1">
-                {% if game.prediction == 'home' %}
-                  <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
-                {% else %}
-                  1.3
-                {% endif %}
-              </td>
-              <td class="p-1">
-                {% if game.prediction == 'draw' %}
-                  <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
-                {% else %}
-                  1.7
-                {% endif %}
-              </td>
-              <td class="p-1">
-                {% if game.prediction == 'away' %}
-                  <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
-                {% else %}
-                  2.3
-                {% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="4" class="text-center">No predictions available</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="container">
+        <div class="table-responsive mt-4 mb-5 pb-5">
+          <table class="table table-bordered table-hover text-center">
+            <thead class="table-dark">
+              <tr style="font-size: x-small;">
+                <th scope="col">Fixed score</th>
+                <th scope="col">Home</th>
+                <th scope="col">Draw</th>
+                <th scope="col">Away</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for game in predictions %}
+                <tr>
+                  <td>{{ game.fixed_score }}</td>
+                  <td>
+                    {% if game.prediction == 'home' %}
+                      <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
+                    {% else %}
+                      1.3
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if game.prediction == 'draw' %}
+                      <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
+                    {% else %}
+                      1.7
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if game.prediction == 'away' %}
+                      <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
+                    {% else %}
+                      2.3
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center">No predictions available</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- Buttons outside the table -->
