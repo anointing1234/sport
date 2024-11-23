@@ -84,7 +84,7 @@ def your_signup_view(request):
                     # Fetch the user with the referral code
                     referrer = User.objects.get(referral_code=referral_code)
                     # Set the referral field for the referrer to the new user
-                    referrer.referrals.add(user)  # Update the referral field
+                    referrer.referral.add(user)  # Update the referral field
                     referrer.save()  # Save the referrer to persist the change
                 except User.DoesNotExist:
                     # Optionally handle the case where the referral code is invalid
