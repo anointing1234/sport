@@ -52,6 +52,23 @@
                 </div>
               </div>
             </div>
+            <div class="card card-stats card-round py-4">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-5 text-center">
+                    <div class="icon-big">
+                      <i class="icon-wallet text-success"></i>
+                    </div>
+                  </div>
+                  <div class="col-7 col-stats">
+                    <div class="numbers">
+                      <h4 class="card-category">Total Winings</h4>
+                      <h3 class="card-title">₦{{ request.user.userbalance.total_profits|intcomma }}</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="col-md-6 mb-4">
