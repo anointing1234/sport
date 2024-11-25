@@ -17,7 +17,7 @@
     <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
       <div>
         <h6 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3"><i class="fas fa-wallet"></i> Deposit</h6>
-        <p>Note: minimum Deposit is ₦16,500</p>
+        <p>Note: minimum Deposit is ₦16,500,make the transfer and upload screenshot of payment</p>
         <p>When making a deposit and uploading a screenshot of payment do not close the browser.</p>
       </div>
     </div>
@@ -139,12 +139,12 @@
           Swal.fire({
             title: 'Bank Account Details',
             html: `
-                                                                                      <p><strong>Account Holder:</strong> ${account_holder_name}</p>
-                                                                                      <p><strong>Bank Name:</strong> ${bank_name}</p>
-                                                                                      <p><strong>Account Number:</strong> ${account_number}</p>
-                                                                                      <p><strong>Deposit Amount:</strong> ₦${formattedDepositAmount}</p>
-                                                                                      <input type="file" id="paymentScreenshot" accept="image/*" required style="margin-top:10px;">
-                                                                                    `,
+                                                                                          <p><strong>Account Holder:</strong> ${account_holder_name}</p>
+                                                                                          <p><strong>Bank Name:</strong> ${bank_name}</p>
+                                                                                          <p><strong>Account Number:</strong> ${account_number}</p>
+                                                                                          <p><strong>Deposit Amount:</strong> ₦${formattedDepositAmount}</p>
+                                                                                          <input type="file" id="paymentScreenshot" accept="image/*" required style="margin-top:10px;">
+                                                                                        `,
             icon: 'info',
             showCancelButton: true,
             confirmButtonText: 'Proceed with Deposit',
