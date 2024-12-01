@@ -103,69 +103,69 @@ class HotGameAdmin(admin.ModelAdmin):
     game_status_actions.short_description = "Actions"
 
 # For PremierLeagueGame
-@admin.register(PremierLeagueGame)
-class PremierLeagueGameAdmin(admin.ModelAdmin):
-    list_display = ('match', 'start_time', 'fixed_score', 'profit_percentage','status','game_status_actions')
-    search_fields = ('match',)
+# @admin.register(PremierLeagueGame)
+# class PremierLeagueGameAdmin(admin.ModelAdmin):
+#     list_display = ('match', 'start_time', 'fixed_score', 'profit_percentage','status','game_status_actions')
+#     search_fields = ('match',)
 
-    def game_status_actions(self, obj):
-        if obj.status == 'playing':
-            won_url = reverse('update_game_status', args=['premier_league', obj.id, 'won'])
-            lost_url = reverse('update_game_status', args=['premier_league', obj.id, 'lost'])
+#     def game_status_actions(self, obj):
+#         if obj.status == 'playing':
+#             won_url = reverse('update_game_status', args=['premier_league', obj.id, 'won'])
+#             lost_url = reverse('update_game_status', args=['premier_league', obj.id, 'lost'])
 
-            return format_html(
-                '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
-                '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
-                won_url,
-                lost_url
-            )
-        return "Completed"
+#             return format_html(
+#                 '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
+#                 '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
+#                 won_url,
+#                 lost_url
+#             )
+#         return "Completed"
 
-    game_status_actions.short_description = "Actions"
+#     game_status_actions.short_description = "Actions"
 
 # For FootballMatch
-@admin.register(FootballMatch)
-class FootballMatchAdmin(admin.ModelAdmin):
-    list_display = ('home_team', 'away_team', 'start_time', 'fixed_score', 'profit_percentage', 'match_type','status', 'game_status_actions')
-    list_filter = ('match_type', 'start_time')
-    search_fields = ('home_team', 'away_team')
+# @admin.register(FootballMatch)
+# class FootballMatchAdmin(admin.ModelAdmin):
+#     list_display = ('home_team', 'away_team', 'start_time', 'fixed_score', 'profit_percentage', 'match_type','status', 'game_status_actions')
+#     list_filter = ('match_type', 'start_time')
+#     search_fields = ('home_team', 'away_team')
 
-    def game_status_actions(self, obj):
-        if obj.status == 'playing':
-            won_url = reverse('update_game_status', args=['football_match', obj.id, 'won'])
-            lost_url = reverse('update_game_status', args=['football_match', obj.id, 'lost'])
+#     def game_status_actions(self, obj):
+#         if obj.status == 'playing':
+#             won_url = reverse('update_game_status', args=['football_match', obj.id, 'won'])
+#             lost_url = reverse('update_game_status', args=['football_match', obj.id, 'lost'])
 
-            return format_html(
-                '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
-                '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
-                won_url,
-                lost_url
-            )
-        return "Completed"
+#             return format_html(
+#                 '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
+#                 '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
+#                 won_url,
+#                 lost_url
+#             )
+#         return "Completed"
 
-    game_status_actions.short_description = "Actions"
+#     game_status_actions.short_description = "Actions"
 
 # For Match
-@admin.register(Match)
-class MatchAdmin(admin.ModelAdmin):
-    list_display = ('match_name', 'start_time', 'fixed_score', 'profit_percentage', 'league','status','game_status_actions')
-    list_filter = ('league',)
-    search_fields = ('match_name',)
+# @admin.register(Match)
+# class MatchAdmin(admin.ModelAdmin):
+#     list_display = ('match_name', 'start_time', 'fixed_score', 'profit_percentage', 'league','status','game_status_actions')
+#     list_filter = ('league',)
+#     search_fields = ('match_name',)
 
-    def game_status_actions(self, obj):
-        if obj.status == 'playing':
-            won_url = reverse('update_game_status', args=['match', obj.id, 'won'])
-            lost_url = reverse('update_game_status', args=['match', obj.id, 'lost'])
+#     def game_status_actions(self, obj):
+#         if obj.status == 'playing':
+#             won_url = reverse('update_game_status', args=['match', obj.id, 'won'])
+#             lost_url = reverse('update_game_status', args=['match', obj.id, 'lost'])
 
-            return format_html(
-                '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
-                '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
-                won_url,
-                lost_url
-            )
-        return "Completed"
+#             return format_html(
+#                 '<a style="padding: 5px 10px; background-color: #28a745; color: white; border-radius: 3px; text-decoration: none; margin-right: 5px;" href="{}">Won</a>'
+#                 '<a style="padding: 5px 10px; background-color: #dc3545; color: white; border-radius: 3px; text-decoration: none;" href="{}">Lost</a>',
+#                 won_url,
+#                 lost_url
+#             )
+#         return "Completed"
 
-    game_status_actions.short_description = "Actions"
+#     game_status_actions.short_description = "Actions"
 
 
 

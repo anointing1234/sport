@@ -16,10 +16,10 @@
           <table class="table table-bordered table-hover text-center">
             <thead class="table-dark">
               <tr style="font-size: x-small;">
-                <th scope="col">Fixed score</th>
-                <th scope="col">Home</th>
-                <th scope="col">Draw</th>
-                <th scope="col">Away</th>
+                <th scope="col">Over/under</th>
+                <th scope="col">Over</th>
+                <th scope="col">Under</th>
+                {% comment %} <th scope="col">Away</th> {% endcomment %}
               </tr>
             </thead>
             <tbody>
@@ -40,13 +40,13 @@
                       1.7
                     {% endif %}
                   </td>
-                  <td>
+                  {% comment %} <td>
                     {% if game.prediction == 'away' %}
                       <h6 class="bg-info text-light">{{ game.profit_percentage }}</h6>
                     {% else %}
                       2.3
                     {% endif %}
-                  </td>
+                  </td> {% endcomment %}
                 </tr>
               {% empty %}
                 <tr>
