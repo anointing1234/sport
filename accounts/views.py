@@ -1009,10 +1009,6 @@ def place_bet(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
-
-
-
-
 def predict_bet(request):
     if request.method == 'POST':
         try:
@@ -1088,9 +1084,6 @@ def predict_bet(request):
             return JsonResponse({'success': False, 'error': 'An error occurred'}, status=500)
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
-
-
-
 
 
 @login_required

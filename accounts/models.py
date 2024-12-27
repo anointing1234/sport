@@ -318,9 +318,8 @@ class HotGame(models.Model):
         ('lost', 'Lost'),
     ]
     CATEGORY_CHOICES = [
-        ('home', 'Home'),
-        ('away', 'Away'),
-        ('draw', 'Draw'),
+        ('over', 'Over'),
+        ('under', 'Under'),
     ]
 
     home_team = models.CharField(max_length=100)
@@ -329,7 +328,7 @@ class HotGame(models.Model):
     start_time = models.DateTimeField()
     profit_percentage = models.DecimalField(max_digits=5, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='playing')
-    prediction = models.CharField(max_length=10,choices=CATEGORY_CHOICES,default='home')  # New field
+    prediction = models.CharField(max_length=10,choices=CATEGORY_CHOICES,default='over')  # New field
 
     def __str__(self):
         return f"{self.home_team} vs {self.away_team}"

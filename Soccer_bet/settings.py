@@ -83,16 +83,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Soccer_bet.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',  # Assuming you want the SQLite database file to be in the base directory of your project
-#     }
-# }
 
 
 
@@ -108,16 +98,6 @@ DATABASES = {
 }
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE':'django.db.backends.postgresql',
-#         'NAME':'soccer234',
-#         'USER':'postgres',
-#         'PASSWORD':'1234',
-#         'HOST':'localhost',
-        
-#     }
-# }
 
 
 # Password validation
