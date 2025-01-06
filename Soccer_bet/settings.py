@@ -20,8 +20,6 @@ env = environ.Env()
 
 environ.Env.read_env(os.path.join(BASE_DIR,'file.env'))
 
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -37,7 +35,6 @@ ALLOWED_HOSTS = ["soccer247gv.com"]
 
 #Application definition
 AUTH_USER_MODEL = 'accounts.Account'
-
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -86,8 +83,6 @@ WSGI_APPLICATION = 'Soccer_bet.wsgi.application'
 
 
 
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -98,7 +93,6 @@ DATABASES = {
         'PORT': env('DB_PORT'),
     }
 }
-
 
 
 
