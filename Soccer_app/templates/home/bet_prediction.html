@@ -10,40 +10,53 @@
   </style>
   <div class="container-fluid page-inner mb-5">
     <div class="row">
-      <h5 class="border-bottom border-1 border-white py-2 me-2">Today's Fixed match prediction</h5>
-      <div class="container">
-        <div class="table-responsive mt-4 mb-5 pb-5">
-          <table class="table table-bordered table-hover text-center">
-            <thead class="table-dark">
-              <tr style="font-size: x-small;">
-                <th scope="col">Over/under</th>
-                <th scope="col">Over</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for game in predictions %}
-                <tr>
-                  <td>{{ game.fixed_score }}</td>
-                  <td>
-                    {% if game.prediction == 'over' %}
-                      <h6 class="bg-info text-light">1.03</h6>
-                    {% elif game.prediction == 'under' %}
-                      <h6 class="bg-info text-light">1.03</h6>  
-                    {% else %}
-                      1.3 
-                    {% endif %}
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="4" class="text-center">No predictions available</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <h5 class="border-bottom border-1 border-white py-2 me-2">Today's Fixed Match Prediction</h5>
+  <div class="container">
+    <div class="table-responsive mt-4 mb-5 pb-5">
+      <table class="table table-bordered table-hover text-center">
+        <thead class="table-dark">
+          <tr style="font-size: x-small;">
+            <th scope="col">Over/Under</th>
+            <th scope="col">
+              {% if predictions|length > 0 %}
+                {% if predictions.0.prediction == 'over' %}
+                  Over
+                {% elif predictions.0.prediction == 'under' %}
+                  Under
+                {% else %}
+                  Other
+                {% endif %}
+              {% else %}
+                No Prediction
+              {% endif %}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for game in predictions %}
+            <tr>
+              <td>{{ game.fixed_score }}</td>
+              <td>
+                {% if game.prediction == 'over' %}
+                  <h6 class="bg-info text-light">1.03</h6>
+                {% elif game.prediction == 'under' %}
+                  <h6 class="bg-info text-light">1.03</h6>
+                {% else %}
+                  1.3
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="2" class="text-center">No predictions available</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
+</div>
+
 
     <!-- Buttons outside the table -->
     {% for game in predictions %}
