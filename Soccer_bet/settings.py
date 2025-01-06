@@ -38,6 +38,7 @@ ALLOWED_HOSTS = ["soccer247gv.com"]
 #Application definition
 AUTH_USER_MODEL = 'accounts.Account'
 
+
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'accounts',
     'Soccer_app',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
