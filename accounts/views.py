@@ -62,8 +62,6 @@ def signup(request):
     
   
 
-
-
 def your_signup_view(request):
     if request.method == 'POST':
         user_form = RegistrationForm(request.POST)
@@ -134,8 +132,6 @@ def login_view(request):
     return render(request, 'Auth/login.html', {'login': form})
 
 
-
-
 def logout_view(request):
     auth_logout(request)
     login_form = LoginForm()
@@ -143,30 +139,39 @@ def logout_view(request):
     { 
      'login':login_form                                         
     })
-    
-    
+      
 
 def get_admin_bank_account(request):
     try:
-        # Fetch the first bank account entry
-        account = AdminBankAccount.objects.first()
+        # Fetch the first two bank account entries
+        accounts = AdminBankAccount.objects.all()[:2]
         
-        if account:
+        if accounts.exists():
+            # Ensure we return account1 and account2 specifically
+            account1 = {
+                'account_holder_name': accounts[0].account_holder_name,
+                'bank_name': accounts[0].bank_name,
+                'account_number': accounts[0].account_number,
+            } if len(accounts) > 0 else {}
+
+            account2 = {
+                'account_holder_name': accounts[1].account_holder_name,
+                'bank_name': accounts[1].bank_name,
+                'account_number': accounts[1].account_number,
+            } if len(accounts) > 1 else {}
+
             data = {
                 'success': True,
-                'account': {
-                    'account_holder_name': account.account_holder_name,
-                    'bank_name': account.bank_name,
-                    'account_number': account.account_number,
-                }
+                'account1': account1,
+                'account2': account2,
             }
         else:
-            data = {'success': False, 'message': 'No bank account found.'}
+            data = {'success': False, 'message': 'No bank accounts found.'}
         
     except Exception as e:
         data = {'success': False, 'message': str(e)}
     
-    return JsonResponse(data)    
+    return JsonResponse(data)
 
 
 def check_deposit_status(request):
