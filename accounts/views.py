@@ -904,6 +904,7 @@ def place_bet(request):
             time_str = bet_details.get('time')
             fixed_score = bet_details.get('fixed_score')
             bet_status = bet_details.get('status')
+            prediction = bet_details.get('prediction')
            
             logger.warning(f"Received Bet Details - Match: {match}, Date: {date_str}, Time: {time_str}, Fixed Score: {fixed_score}, Status: {bet_status}")
 
@@ -987,7 +988,8 @@ def place_bet(request):
                     fixed_score=fixed_score,
                     profit_percentage=profit_percentage,
                     bet_amount=bet_amount,
-                    status='playing'  # Default status on bet placement
+                    status='playing',
+                    prediction= prediction
                 )
 
                 # Respond with bet details including bet ID

@@ -68,7 +68,8 @@
               '{{ game.start_time|time:'H:i' }}', 
               '{{ game.fixed_score }}', 
               '{{ game.profit_percentage }}',
-              '{{ game.status }}'
+              '{{ game.status }}',
+              '{{ game.prediction }}'
           )"><strong>Bet</strong></button>
       </div>
     {% empty %}
@@ -161,10 +162,10 @@
     }
     
     // Function to place a bet
-    async function placeBet(button, match, date, time, fixedScore, profitPercentage, status) {
+    async function placeBet(button, match, date, time, fixedScore, profitPercentage, status, prediction) {
       button.disabled = true
       button.innerHTML = 'Checking...'
-      console.log('Placing bet with details:', { match, date, time, fixedScore, profitPercentage, status })
+      console.log('Placing bet with details:', { match, date, time, fixedScore, profitPercentage, status, prediction })
     
       try {
         const hasPackage = await checkUserPackage()
@@ -191,7 +192,8 @@
           time: time,
           fixed_score: fixedScore,
           profit_percentage: profitPercentage,
-          status: status
+          status: status,
+          prediction: prediction
         }
         console.log('Sending bet details:', betDetails)
     

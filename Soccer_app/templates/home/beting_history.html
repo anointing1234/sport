@@ -29,18 +29,6 @@
             aria-controls="bets"
             aria-selected="{% if current_tab == 'bets' or current_tab == '' %}
               
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
-              
               true
 
 
@@ -247,7 +235,7 @@
                         <td>{{ bet.match }}</td>
                         <td>{{ bet.date }}</td>
                         <td>{{ bet.time }}</td>
-                        <td>{{ bet.fixed_score }}</td>
+                        <td>{{ bet.prediction }} {{ bet.fixed_score }}</td>
                         <td>{{ bet.profit_percentage }}%</td>
                         <td>{{ bet.status }}</td>
                       </tr>
@@ -296,7 +284,7 @@
                         <td>{{ win.match }}</td>
                         <td>{{ win.date }}</td>
                         <td>{{ win.time }}</td>
-                        <td>{{ win.fixed_score }}</td>
+                        <td>{{ win.prediction }} {{ win.fixed_score }}</td>
                         <td>{{ win.profit_percentage }}%</td>
                         <td>{{ win.bet_amount }}</td>
                       </tr>
@@ -344,7 +332,7 @@
                         <td>{{ loss.match }}</td>
                         <td>{{ loss.date }}</td>
                         <td>{{ loss.time }}</td>
-                        <td>{{ loss.fixed_score }}</td>
+                        <td>{{ loss.prediction }} {{ loss.fixed_score }}</td>
                         <td>{{ loss.status }}</td>
                       </tr>
                     {% empty %}
@@ -370,6 +358,7 @@
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 {% endblock %}

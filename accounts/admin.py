@@ -172,7 +172,7 @@ class HotGameAdmin(admin.ModelAdmin):
 
 
 class BetHistoryAdmin(admin.ModelAdmin):
-    list_display = ('match', 'date', 'time', 'fixed_score', 'profit_percentage', 'bet_amount','status', 'user','placed_at')
+    list_display = ('match', 'date', 'time', 'fixed_score', 'profit_percentage', 'bet_amount','status', 'prediction', 'user','placed_at')
     list_filter = ('date', 'user')  # Allows filtering by date and user
     search_fields = ('match',)  # Enables search functionality for the match field
     ordering = ('-date',)  # Orders by date descending
@@ -180,7 +180,7 @@ class BetHistoryAdmin(admin.ModelAdmin):
   
     fieldsets = (
         (None, {
-            'fields': ('user', 'match', 'date', 'time', 'fixed_score', 'profit_percentage', 'bet_amount')
+            'fields': ('user', 'match', 'date', 'time', 'fixed_score', 'profit_percentage', 'bet_amount','prediction')
         }),
     )
     readonly_fields = ('date',)  # Make the date field read-only
