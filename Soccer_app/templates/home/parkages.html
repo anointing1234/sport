@@ -9,7 +9,7 @@
         <h5 style="font-family: Verdana, Geneva, Tahoma, sans-serif; color: white;" class="mb-3"><i class="fas fa-money-bill-wave"></i> Packages</h5>
       </div>
     </div>
-
+{% comment %} 
     <div class="row mb-5 pb-5 p-0">
       <div class="row mx-3">
         <div class="container-fluid mb-2 pb-5">
@@ -47,6 +47,62 @@
         </div>
       </div>
     </div>
+ {% endcomment %}
+ <div class="row mb-5 pb-5 p-0">
+  <div class="row mx-3">
+    <div class="container-fluid mb-2 pb-5">
+      <div class="row me-3">
+        {% for package in packages %}
+          <div class="col-md-4 ps-md-0 mb-4">
+            <div class="card card-pricing {% if forloop.first %}card-pricing-focus{% endif %}" style="height: 100%;">
+              <div class="card-header">
+                <h4 class="card-title">{{ package.name }}</h4>
+                <div class="card-price">
+                  <span class="price fs-3">₦{{ package.price|intcomma }}</span>
+                </div>
+              </div>
+              <div class="card-body d-flex flex-column">
+                <ul class="specification-list mb-0">
+                  <li>
+                    <span class="name-specification">Daily</span>
+                    <span class="status-specification">{{ package.daily_interest }}%</span>
+                  </li>
+                  <li>
+                    <span class="name-specification">Withdrawal</span>
+                    <span class="status-specification">{{ package.withdrawal_frequency }}</span>
+                  </li>
+                </ul>
+                <div class="mt-auto">
+                  {% if forloop.counter <= 3 %}
+                    <!-- Purchase button for the first 3 cards -->
+                    <button class="btn btn-primary w-100 purchase-package" 
+                            data-name="{{ package.name }}" 
+                            data-price="{{ package.price }}" 
+                            data-daily-interest="{{ package.daily_interest }}" 
+                            data-withdrawal-frequency="{{ package.withdrawal_frequency }}">
+                      <b>Purchase now</b>
+                    </button>
+                  {% else %}
+                    <!-- Coming Soon button for the rest -->
+                    <button class="btn btn-secondary w-100" disabled>
+                      <b>Coming soon</b>
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <p>No packages available.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

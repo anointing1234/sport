@@ -983,7 +983,7 @@ def place_bet(request):
                     user=request.user,
                     match=match,
                     date=match_start_date,
-                    time=timezone.now().time(),  # Set the time to the current time
+                    time=match_start_time.time(),  # Set the time to the current time
                     fixed_score=fixed_score,
                     profit_percentage=profit_percentage,
                     bet_amount=bet_amount,
